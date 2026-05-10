@@ -1,0 +1,42 @@
+[
+  {
+    "content": "Phase 2.1: Get design guidelines from design_agent",
+    "status": "in_progress"
+  },
+  {
+    "content": "Phase 2.2: Setup Tailwind theme (colors + fonts) + shadcn/ui",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 2.3: Backend - models, routes (quiz/contact/demo), MongoDB",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 2.4: Frontend - Header, Footer, Layout",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 2.5: Frontend - Home page (Hero + Pipeline + Defects + Video + Backend section)",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 2.6: Frontend - Quiz EN 975-1 multi-step flow with results",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 2.7: Frontend - Contact page + Demande Démo modal",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 2.8: Quiz questions data EN 975-1 (12-15 questions)",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 2.9: Phase 2 - All user stories covered in Development",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 2.10: End to End Testing using Testing Agent",
+    "status": "pending"
+  }
+]
