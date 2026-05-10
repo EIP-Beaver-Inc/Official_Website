@@ -3,7 +3,7 @@ import SectionHeader from '@/components/SectionHeader';
 import { fetchScoring } from '@/lib/api';
 
 const CARD_TONE = {
-    Premium: 'border-[hsla(10,60%,40%,0.35)] bg-[hsla(10,60%,40%,0.06)]',
+    Premium: 'border-[hsla(14,64%,42%,0.35)] bg-[hsla(14,64%,42%,0.06)]',
     Standard: 'border-black/5 bg-[hsl(var(--card))]',
     Economy: 'border-black/5 bg-[hsl(var(--card))]',
     Reject: 'border-black/5 bg-[hsl(var(--card))]',
@@ -24,7 +24,7 @@ export default function ScoringSection() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
                     <div className="lg:col-span-5">
                         <SectionHeader
-                            kicker="04 · Classement"
+                            kicker="03 · Classement"
                             title={
                                 <>
                                     Score 0–100, classe <span className="brick-italic">en sortie.</span>

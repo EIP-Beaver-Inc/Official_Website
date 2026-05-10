@@ -23,46 +23,46 @@ body {
 }
 
 ::selection {
-    background-color: hsl(10 60% 40% / 0.18);
+    background-color: hsl(14 64% 42% / 0.2);
     color: hsl(0 0% 7%);
 }
 
 @layer base {
     :root {
-        /* BEAVER editorial palette */
-        --background: 120 33% 94%;
-        --foreground: 0 0% 7%;
+        /* BEAVER editorial palette — v2: warmer cream canvas + refined terracotta */
+        --background: 42 36% 93%;
+        --foreground: 25 18% 11%;
 
-        --card: 38 45% 96%;
-        --card-foreground: 0 0% 7%;
+        --card: 38 50% 96%;
+        --card-foreground: 25 18% 11%;
 
-        --popover: 38 45% 96%;
-        --popover-foreground: 0 0% 7%;
+        --popover: 38 50% 96%;
+        --popover-foreground: 25 18% 11%;
 
-        --primary: 10 60% 40%;
-        --primary-foreground: 38 45% 96%;
+        --primary: 14 64% 42%;
+        --primary-foreground: 38 50% 96%;
 
-        --secondary: 120 18% 90%;
-        --secondary-foreground: 0 0% 10%;
+        --secondary: 38 28% 88%;
+        --secondary-foreground: 25 18% 14%;
 
-        --muted: 120 16% 91%;
-        --muted-foreground: 0 0% 38%;
+        --muted: 38 22% 90%;
+        --muted-foreground: 25 12% 38%;
 
-        --accent: 120 22% 90%;
-        --accent-foreground: 0 0% 10%;
+        --accent: 142 18% 86%;
+        --accent-foreground: 25 18% 14%;
 
         --destructive: 0 72% 52%;
         --destructive-foreground: 0 0% 98%;
 
-        --border: 40 18% 86%;
-        --input: 40 18% 86%;
-        --ring: 10 60% 40%;
+        --border: 35 22% 84%;
+        --input: 35 22% 84%;
+        --ring: 14 64% 42%;
 
-        --chart-1: 10 60% 40%;
-        --chart-2: 120 28% 34%;
-        --chart-3: 35 35% 45%;
-        --chart-4: 190 28% 34%;
-        --chart-5: 0 0% 25%;
+        --chart-1: 14 64% 42%;
+        --chart-2: 142 24% 32%;
+        --chart-3: 35 38% 42%;
+        --chart-4: 196 30% 36%;
+        --chart-5: 25 12% 26%;
 
         --radius: 0.85rem;
     }
@@ -113,12 +113,21 @@ body {
     }
     .hero-bg {
         background:
-            radial-gradient(900px 500px at 15% 10%, hsla(120, 35%, 92%, 0.9) 0%, transparent 60%),
-            radial-gradient(700px 420px at 85% 20%, hsla(38, 55%, 94%, 0.9) 0%, transparent 55%),
-            linear-gradient(180deg, hsl(120 33% 94%) 0%, hsl(120 28% 93%) 100%);
+            radial-gradient(900px 500px at 12% 8%, hsla(142, 30%, 90%, 0.85) 0%, transparent 60%),
+            radial-gradient(700px 420px at 88% 22%, hsla(28, 55%, 90%, 0.85) 0%, transparent 55%),
+            linear-gradient(180deg, hsl(42 36% 93%) 0%, hsl(42 32% 91%) 100%);
     }
     .noise-overlay {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+    }
+    .section-defects-bg {
+        background:
+            linear-gradient(180deg, hsl(38 35% 92%) 0%, hsl(38 30% 90%) 100%);
+    }
+    .section-cta-bg {
+        background:
+            radial-gradient(700px 360px at 80% 20%, hsla(14, 64%, 42%, 0.08) 0%, transparent 60%),
+            linear-gradient(180deg, hsl(38 32% 90%) 0%, hsl(42 36% 93%) 100%);
     }
 }
 
@@ -167,7 +176,6 @@ body {
     animation: beaver-pulse 1.6s ease-out infinite;
 }
 
-/* Dotted divider */
 .dotted-divider {
     background-image: radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px);
     background-size: 8px 8px;

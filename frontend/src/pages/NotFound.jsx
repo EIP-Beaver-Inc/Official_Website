@@ -11,7 +11,7 @@ export default function NotFound() {
             <a
                 href="/"
                 data-testid="notfound-home-link"
-                className="inline-flex mt-8 items-center justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(10_62%_36%)] text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors"
+                className="inline-flex mt-8 items-center justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors"
             >
                 Retour à l’accueil
             </a>

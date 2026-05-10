@@ -1,10 +1,40 @@
-import { ArrowRight } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import LiveBadge from '@/components/LiveBadge';
 import PillButton from '@/components/PillButton';
 import DemoDialog from '@/components/DemoDialog';
-import { HERO_IMAGE_URL, LOGO_URL } from '@/lib/assets';
+import { LOGO_URL, VIDEO_POSTER_URL, DEMO_VIDEO_URL, DEMO_VIDEO_FALLBACK_URL } from '@/lib/assets';
 
 export default function Hero() {
+    const videoRef = useRef(null);
+    const [playing, setPlaying] = useState(false);
+    const [muted, setMuted] = useState(true);
+    const [errored, setErrored] = useState(false);
+
+    const togglePlay = () => {
+        const v = videoRef.current;
+        if (!v) return;
+        if (v.paused) v.play().then(() => setPlaying(true)).catch(() => setErrored(true));
+        else { v.pause(); setPlaying(false); }
+    };
+    const toggleMute = () => {
+        const v = videoRef.current;
+        if (!v) return;
+        v.muted = !v.muted;
+        setMuted(v.muted);
+    };
+    const onError = () => {
+        const v = videoRef.current;
+        if (!v) return;
+        const sources = v.querySelectorAll('source');
+        if (sources.length > 1 && v.currentSrc.includes(sources[0].src)) {
+            v.src = sources[1].src;
+            v.load();
+        } else {
+            setErrored(true);
+        }
+    };
+
     return (
         <section data-testid="home-hero" className="relative overflow-hidden hero-bg">
             <div className="absolute inset-0 noise-overlay opacity-60 pointer-events-none" aria-hidden />
@@ -78,36 +108,28 @@ export default function Hero() {
                                     <span className="text-[10px] tracking-[0.16em] uppercase text-[hsl(var(--muted-foreground))]">#2471</span>
                                 </div>
 
-                                <div className="relative">
-                                    <img
-                                        src={HERO_IMAGE_URL}
-                                        alt="Ligne de production scierie"
-                                        className="aspect-[4/3] w-full object-cover"
-                                        loading="eager"
-                                    />
-
-                                    {/* annotation chips */}
-                                    <div
-                                        className="absolute top-[18%] left-[12%] rounded-md bg-[hsla(10,60%,40%,0.16)] border border-[hsla(10,60%,40%,0.4)] px-2 py-1 text-[11px] font-semibold text-[hsl(var(--primary))] backdrop-blur-sm"
+                                {/* Video player */}
+                                <div className="relative aspect-[4/3] bg-[hsl(38_45%_92%)]">
+                                    <video
+                                        ref={videoRef}
+                                        data-testid="hero-demo-video"
+                                        poster={VIDEO_POSTER_URL}
+                                        controls
+                                        playsInline
+                                        muted
+                                        preload="metadata"
+                                        className="absolute inset-0 h-full w-full object-cover"
+                                        onError={onError}
+                                        onPlay={() => setPlaying(true)}
+                                        onPause={() => setPlaying(false)}
                                     >
-                                        Nœud vif · 0.94
-                                    </div>
-                                    <div
-                                        className="absolute top-[35%] left-[10%] h-[28%] w-[34%] rounded-md border-2 border-[hsla(10,60%,40%,0.55)]"
-                                        aria-hidden
-                                    />
-                                    <div
-                                        className="absolute bottom-[26%] right-[20%] rounded-md bg-[hsla(10,60%,40%,0.16)] border border-[hsla(10,60%,40%,0.4)] px-2 py-1 text-[11px] font-semibold text-[hsl(var(--primary))] backdrop-blur-sm"
-                                    >
-                                        Fissure · 0.81
-                                    </div>
-                                    <div
-                                        className="absolute bottom-[8%] right-[12%] h-[20%] w-[28%] rounded-md border-2 border-[hsla(10,60%,40%,0.55)]"
-                                        aria-hidden
-                                    />
+                                        <source src={DEMO_VIDEO_URL} type="video/mp4" />
+                                        <source src={DEMO_VIDEO_FALLBACK_URL} type="video/mp4" />
+                                        Votre navigateur ne supporte pas la vidéo HTML5.
+                                    </video>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-2 border-t border-black/5 bg-[hsl(38_45%_94%)] p-4">
+                                <div className="grid grid-cols-3 gap-2 border-t border-black/5 bg-[hsl(38_50%_94%)] p-4">
                                     <div>
                                         <div className="label-caps">Track</div>
                                         <div className="mt-1 font-heading text-xl">#2471</div>

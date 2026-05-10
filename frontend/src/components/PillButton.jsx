@@ -20,7 +20,7 @@ export default function PillButton({
     };
     const variants = {
         primary:
-            'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(10_62%_36%)] shadow-[0_8px_24px_rgba(168,65,42,0.18)]',
+            'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(14_66%_38%)] shadow-[0_8px_24px_rgba(168,65,42,0.18)]',
         outline:
             'bg-transparent border border-black/15 text-[hsl(var(--foreground))] hover:bg-[hsl(var(--card))]',
         ghost:

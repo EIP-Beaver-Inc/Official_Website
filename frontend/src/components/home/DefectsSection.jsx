@@ -3,7 +3,7 @@ import SectionHeader from '@/components/SectionHeader';
 import { fetchDefects } from '@/lib/api';
 
 const IMPACT_COLOR = {
-    'Critique': 'bg-[hsla(10,60%,40%,0.12)] text-[hsl(var(--primary))] border-[hsla(10,60%,40%,0.3)]',
+    'Critique': 'bg-[hsla(14,64%,42%,0.12)] text-[hsl(var(--primary))] border-[hsla(14,64%,42%,0.3)]',
     'Modéré': 'bg-[hsl(38_45%_92%)] text-[hsl(35_45%_30%)] border-black/5',
     'Mineur': 'bg-[hsl(120_22%_88%)] text-[hsl(120_28%_28%)] border-black/5',
     'Esthétique': 'bg-[hsl(190_25%_90%)] text-[hsl(190_30%_28%)] border-black/5',

@@ -1,6 +1,5 @@
-"""Static reference data for the BEAVER pipeline marketing site.
-No external dependencies — used by /api/pipeline, /api/defects, /api/scoring,
-and also drives the quiz Type de produit / classes qualité explanations.
+"""Static reference data — BEAVER pipeline + EN 975-1 norm (oak / Quercus).
+Mis à jour selon la norme officielle (NF B53-501 / EN 975-1) : Q-B/S/F/P + classes A/1/2/3/4.
 """
 from typing import List, Dict
 
@@ -58,7 +57,7 @@ DEFECT_CLASSES: List[Dict] = [
         "key": "noeud_avec_fissure",
         "name": "Nœud avec fissure",
         "impact": "Critique",
-        "description": "Nœud présentant une fente. Cumul de deux défauts : déclassant en classes Q-B et inférieures.",
+        "description": "Nœud présentant une fente. Cumul de deux défauts : déclassant en classes inférieures.",
     },
 ]
 
@@ -99,36 +98,38 @@ SCORING_CLASSES: List[Dict] = [
 PRODUCT_TYPES: List[Dict] = [
     {
         "letter": "B",
-        "name": "Plots (ou boules)",
-        "desc": "Bille ouverte reconstituée. Largeur du plateau central ≥ 250 mm (≥ 350 mm pour Q-B-A). Longueur 2 m et plus.",
+        "name": "Plots reconstitués",
+        "desc": "Bille ouverte reconstituée. Largeur du plateau central ≥ 250 mm (≥ 350 mm pour Q-B A). Longueur 2 m et plus. Découvert minimum 80 à 120 mm selon la classe.",
+        "specs": "L ≥ 250 MM · LONG. ≥ 2 M",
+    },
+    {
+        "letter": "S",
+        "name": "Plateaux sélectionnés",
+        "desc": "Plateaux individuels. Mêmes critères de découvert et de largeur que les plots. Zone de classement 0,2 m × 2 m.",
         "specs": "L ≥ 250 MM · LONG. ≥ 2 M",
     },
     {
         "letter": "F",
         "name": "Frises et avivés",
-        "desc": "Frises : 40–99 mm de largeur. Avivés : ≥ 100 mm. Longueurs 250 à 2100 mm par pas de 50 mm.",
+        "desc": "Frises : 40–99 mm de largeur. Avivés : ≥ 100 mm. Longueurs 250 à 2100 mm par pas de 50 mm. Épaisseur typique 41 mm.",
         "specs": "40–99 MM (FRISES) · ≥ 100 MM (AVIVÉS)",
-    },
-    {
-        "letter": "S",
-        "name": "Plateaux sélectionnés",
-        "desc": "Plateaux individuels. Mêmes découverts minimums que les plots. Zone de classement 0,2 m × 2 m.",
-        "specs": "L ≥ 250 MM · LONG. ≥ 2 M",
     },
     {
         "letter": "P",
         "name": "Pièces équarries",
-        "desc": "Pièces massives. Dimensions courantes : 100×100, 120×120, 150×150, 180×180, 200×200, 250×250 mm.",
-        "specs": "100×100 → 250×250",
+        "desc": "Pièces massives. Épaisseur + largeur ≥ 200 mm ET épaisseur ≥ 80 mm. Dimensions courantes : 100×100 à 250×250 mm.",
+        "specs": "ÉP. + LARG. ≥ 200 MM · ÉP. ≥ 80 MM",
     },
 ]
 
 
 QUALITY_CLASSES: List[Dict] = [
-    {"code": "Q-A1", "name": "Qualité supérieure stricte", "desc": "Quasi sans défaut. Ébénisterie de prestige."},
-    {"code": "Q-A2", "name": "Qualité supérieure", "desc": "Défauts très limités. Menuiserie haut de gamme."},
-    {"code": "Q-B1", "name": "Qualité courante stricte", "desc": "Défauts mineurs admis dans la zone de classement."},
-    {"code": "Q-B2", "name": "Qualité courante", "desc": "Défauts modérés admis. Usage menuiserie courante."},
-    {"code": "Q-C", "name": "Qualité industrielle", "desc": "Défauts marqués mais usage industriel viable."},
-    {"code": "Q-D", "name": "Qualité déclassée", "desc": "Tous défauts admis. Usage palettes, coffrage."},
+    {"code": "Q-B A", "name": "Plot · Qualité exceptionnelle", "desc": "Largeur ≥ 350 mm, découvert 120 mm. Nœud sain < 20 mm. Lunure, pourriture, roulure exclues."},
+    {"code": "Q-B 1", "name": "Plot · Qualité supérieure", "desc": "Largeur ≥ 250 mm, découvert 100 mm. Nœuds sains < 5 mm (max 8). Lunure exclue."},
+    {"code": "Q-B 2", "name": "Plot · Qualité courante", "desc": "Découvert 80 mm. Nœuds < 5 mm sans limite, < 40 mm équivalent à 100 mm. Cœur brun < 25%."},
+    {"code": "Q-B 3", "name": "Plot · Qualité industrielle", "desc": "Nœuds sains < 10 mm sans limite, < 70 mm équivalent à 160 mm. Lunure tolérée."},
+    {"code": "Q-B 4", "name": "Plot · Qualité déclassée", "desc": "Pas de limitation, sauf exclusions par accord contractuel."},
+    {"code": "Q-F 1a", "name": "Frise · Droit fil", "desc": "Pièces de droit fil (3%). 1 nœud sain < 10 mm pour largeur < 120 mm."},
+    {"code": "Q-F 2", "name": "Frise · Standard", "desc": "3 nœuds sains < 25 mm pour largeur < 120 mm. Équivalence 75 mm."},
+    {"code": "Q-F 4", "name": "Avivé · Industriel", "desc": "Nœuds sains < 70 mm sans limitation. Flache jusqu'à 10% largeur."},
 ]

@@ -183,7 +183,7 @@ export default function Quiz() {
                         Évaluez votre maîtrise du <span className="brick-italic">classement de chêne.</span>
                     </h1>
                     <p className="mt-5 max-w-2xl text-[hsl(var(--muted-foreground))] leading-[1.7]">
-                        {total} questions sur les types de produit (B/F/S/P), les classes de qualité (Q-A1 → Q-D), les défauts admissibles, et l’architecture du pipeline BEAVER. Durée estimée : 5 minutes.
+                        {total} questions sur les types de produit (B/S/F/P), les classes de qualité officielles (Q-B A à Q-B 4, Q-F 1a à Q-F 4), les défauts admissibles, la zone de classement 0,2 m × 2 m, et l'architecture du pipeline BEAVER. Durée estimée : 5 minutes.
                     </p>
 
                     <div className="mt-8">
@@ -235,7 +235,7 @@ export default function Quiz() {
                                     data-testid="quiz-answer-option"
                                     className={`group cursor-pointer rounded-xl border bg-[hsl(var(--background))] p-4 sm:p-5 flex items-start gap-3 transition-colors duration-150 ease-out ${
                                         selected
-                                            ? 'border-[hsl(var(--primary))] bg-[hsla(10,60%,40%,0.06)]'
+                                            ? 'border-[hsl(var(--primary))] bg-[hsla(14,64%,42%,0.06)]'
                                             : 'border-black/10 hover:border-black/20'
                                     }`}
                                 >
@@ -272,7 +272,7 @@ export default function Quiz() {
                                 type="button"
                                 data-testid="quiz-next-button"
                                 onClick={goNext}
-                                className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(10_62%_36%)] text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors"
+                                className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors"
                             >
                                 {idx + 1 === total ? 'Terminer' : 'Suivant'}
                                 <ArrowRight className="h-4 w-4" />
@@ -352,7 +352,7 @@ export default function Quiz() {
                                 data-testid="quiz-submit-with-email-button"
                                 onClick={() => send(true)}
                                 disabled={submitting}
-                                className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(10_62%_36%)] disabled:opacity-60 text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors"
+                                className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] disabled:opacity-60 text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors"
                             >
                                 {submitting ? 'Calcul…' : 'Recevoir le débrief'}
                                 <ArrowRight className="h-4 w-4" />
@@ -405,7 +405,7 @@ function ResultPanel({ result, questionsById, onRestart }) {
                             </p>
                             <div className="mt-5 flex flex-wrap gap-3">
                                 <DemoDialog
-                                    triggerClassName="inline-flex items-center justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(10_62%_36%)] text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors"
+                                    triggerClassName="inline-flex items-center justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors"
                                     triggerLabel="Demander une démo"
                                     testId="quiz-result-demo-button"
                                 />

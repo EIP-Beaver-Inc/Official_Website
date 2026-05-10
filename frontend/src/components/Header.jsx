@@ -17,7 +17,7 @@ export default function Header() {
     return (
         <header
             data-testid="site-header"
-            className="sticky top-0 z-40 backdrop-blur-md bg-[hsla(120,33%,94%,0.78)] border-b border-black/5"
+            className="sticky top-0 z-40 backdrop-blur-md bg-[hsla(42,36%,93%,0.78)] border-b border-black/5"
         >
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
                 <Link
@@ -68,7 +68,7 @@ export default function Header() {
 
                 <div className="flex items-center gap-2">
                     <DemoDialog
-                        triggerClassName="hidden sm:inline-flex rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(10_62%_36%)] text-[hsl(var(--primary-foreground))] px-4 lg:px-5 h-10 lg:h-11 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))]"
+                        triggerClassName="hidden sm:inline-flex rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] text-[hsl(var(--primary-foreground))] px-4 lg:px-5 h-10 lg:h-11 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))]"
                         triggerLabel="Demander une démo"
                         testId="header-request-demo-button"
                     />
@@ -110,7 +110,7 @@ export default function Header() {
                         ))}
                         <div className="pt-2">
                             <DemoDialog
-                                triggerClassName="w-full inline-flex justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(10_62%_36%)] text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium"
+                                triggerClassName="w-full inline-flex justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium"
                                 triggerLabel="Demander une démo"
                                 testId="mobile-request-demo-button"
                             />

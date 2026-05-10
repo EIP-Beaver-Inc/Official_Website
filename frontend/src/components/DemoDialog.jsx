@@ -122,7 +122,7 @@ export default function DemoDialog({ triggerClassName, triggerLabel = 'Demander 
                             type="submit"
                             disabled={submitting}
                             data-testid="demo-request-submit-button"
-                            className="inline-flex items-center justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(10_62%_36%)] disabled:opacity-60 text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors"
+                            className="inline-flex items-center justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] disabled:opacity-60 text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors"
                         >
                             {submitting ? 'Envoi…' : 'Envoyer ma demande'}
                             <ArrowRight className="ml-2 h-4 w-4" />

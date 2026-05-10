@@ -90,7 +90,7 @@ export default function Contact() {
                                 type="submit"
                                 disabled={submitting}
                                 data-testid="contact-form-submit-button"
-                                className="inline-flex items-center justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(10_62%_36%)] disabled:opacity-60 text-[hsl(var(--primary-foreground))] px-6 h-12 text-sm font-medium transition-colors shadow-[0_8px_24px_rgba(168,65,42,0.18)]"
+                                className="inline-flex items-center justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] disabled:opacity-60 text-[hsl(var(--primary-foreground))] px-6 h-12 text-sm font-medium transition-colors shadow-[0_8px_24px_rgba(168,65,42,0.18)]"
                             >
                                 {submitting ? 'Envoi…' : 'Envoyer le message'}
                                 <ArrowRight className="ml-2 h-4 w-4" />

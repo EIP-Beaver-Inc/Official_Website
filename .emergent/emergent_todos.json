@@ -1,42 +1,26 @@
 [
   {
-    "content": "Phase 2.1: Get design guidelines from design_agent",
+    "content": "Update quiz_data.py with correct EN 975-1 norm (real classes Q-B A, Q-B 1-4, Q-F 1a/1b/2/3/4)",
     "status": "completed"
   },
   {
-    "content": "Phase 2.2: Setup Tailwind theme (colors + fonts) + shadcn/ui",
+    "content": "Update defects_data.py PRODUCT_TYPES + QUALITY_CLASSES with real norm",
     "status": "completed"
   },
   {
-    "content": "Phase 2.3: Backend - models, routes (quiz/contact/demo), MongoDB",
+    "content": "Adjust color palette (subtle variations - warmer cream, refined brick)",
     "status": "completed"
   },
   {
-    "content": "Phase 2.4: Frontend - Header, Footer, Layout",
+    "content": "Replace hero image by video player in Hero.jsx",
     "status": "completed"
   },
   {
-    "content": "Phase 2.5: Frontend - Home page (Hero + Pipeline + Defects + Video + Backend section)",
+    "content": "Remove or repurpose VideoSection from Home (avoid duplicate)",
     "status": "completed"
   },
   {
-    "content": "Phase 2.6: Frontend - Quiz EN 975-1 multi-step flow with results",
-    "status": "completed"
-  },
-  {
-    "content": "Phase 2.7: Frontend - Contact page + Demande Démo modal",
-    "status": "completed"
-  },
-  {
-    "content": "Phase 2.8: Quiz questions data EN 975-1 (12-15 questions)",
-    "status": "completed"
-  },
-  {
-    "content": "Phase 2.9: Visual review + fixes (screenshots)",
-    "status": "completed"
-  },
-  {
-    "content": "Phase 2.10: End to End Testing using Testing Agent (16/16 backend + 10/10 frontend stories pass)",
+    "content": "Re-test E2E (quiz with new content + hero video + new colors)",
     "status": "completed"
   }
 ]
