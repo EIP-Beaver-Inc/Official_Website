@@ -38,7 +38,7 @@ export default function FinalCTA() {
                 <div data-animate="fade-up" className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
                     <DemoDialog
                         triggerClassName="inline-flex items-center justify-center rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] text-[hsl(var(--primary-foreground))] px-6 sm:px-7 h-12 sm:h-[54px] text-sm sm:text-base font-medium transition-colors shadow-[0_8px_24px_rgba(168,65,42,0.18)]"
-                        triggerLabel="Demander une démo"
+                        triggerLabel="Demander un devis"
                         testId="final-cta-demo-button"
                     />
                     <PillButton to="/contact" variant="outline" size="lg" testId="final-cta-contact">

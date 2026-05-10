@@ -10,7 +10,7 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 
-from quiz_data import QUIZ_QUESTIONS, build_public_questions, evaluate_answers
+from quiz_data import QUIZ_QUESTIONS, build_public_questions, evaluate_answers, get_answer_groups
 from defects_data import DEFECT_CLASSES, PIPELINE_STEPS, SCORING_CLASSES, PRODUCT_TYPES, QUALITY_CLASSES
 
 ROOT_DIR = Path(__file__).parent
@@ -82,9 +82,12 @@ class QuizSubmission(BaseModel):
 
 class QuizResultDetail(BaseModel):
     question_id: str
-    question: str
+    image_url: Optional[str] = None
+    product_type: Optional[str] = None
     selected: Optional[str] = None
+    selected_code: Optional[str] = None
     correct: str
+    correct_code: Optional[str] = None
     is_correct: bool
     explanation: str
 
@@ -142,6 +145,7 @@ async def get_quiz_questions():
     return {
         "product_types": PRODUCT_TYPES,
         "quality_classes": QUALITY_CLASSES,
+        "answer_groups": get_answer_groups(),
         "questions": build_public_questions(),
         "total": len(QUIZ_QUESTIONS),
     }

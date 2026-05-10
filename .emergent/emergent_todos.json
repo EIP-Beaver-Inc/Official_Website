@@ -1,26 +1,26 @@
 [
   {
-    "content": "Update quiz_data.py with correct EN 975-1 norm (real classes Q-B A, Q-B 1-4, Q-F 1a/1b/2/3/4)",
-    "status": "completed"
+    "content": "Rewrite quiz: image-classification quiz with fixed answer groups (Plots/Plateaux/Frises/Pièces équarries)",
+    "status": "in_progress"
   },
   {
-    "content": "Update defects_data.py PRODUCT_TYPES + QUALITY_CLASSES with real norm",
-    "status": "completed"
+    "content": "Backend - update quiz_data.py + defects_data.py + server.py for new quiz structure",
+    "status": "pending"
   },
   {
-    "content": "Adjust color palette (subtle variations - warmer cream, refined brick)",
-    "status": "completed"
+    "content": "Frontend - rewrite Quiz.jsx for image classification flow",
+    "status": "pending"
   },
   {
-    "content": "Replace hero image by video player in Hero.jsx",
-    "status": "completed"
+    "content": "Rename 'Demander une démo' → 'Demander un devis' partout + fix button centering",
+    "status": "pending"
   },
   {
-    "content": "Remove or repurpose VideoSection from Home (avoid duplicate)",
-    "status": "completed"
+    "content": "Remove DefectTracker from home Pipeline section (keep only ROI + BOBER)",
+    "status": "pending"
   },
   {
-    "content": "Re-test E2E (quiz with new content + hero video + new colors)",
-    "status": "completed"
+    "content": "Verify and screenshot final result",
+    "status": "pending"
   }
 ]

@@ -21,13 +21,13 @@ export default function PipelineSection() {
                     kicker="01 · Pipeline"
                     title={
                         <>
-                            Trois modèles, <span className="brick-italic">un rapport</span> par planche.
+                            Deux modèles, <span className="brick-italic">un rapport</span> par planche.
                         </>
                     }
                     subtitle="Chaque planche traverse une chaîne d’inférence déterministe. Une machine à états ouvre et ferme une session par planche selon sa présence dans le champ."
                 />
 
-                <div className="mt-10 sm:mt-14 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                <div className="mt-10 sm:mt-14 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
                     {steps.map((s) => {
                         const Icon = ICONS[s.icon] || Scan;
                         return (

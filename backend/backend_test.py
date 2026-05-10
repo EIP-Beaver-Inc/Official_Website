@@ -91,7 +91,7 @@ class BeaverAPITester:
             "GET", "pipeline", 200,
             validate_fn=lambda d: (
                 (True, "") if (
-                    "steps" in d and len(d["steps"]) == 3 and
+                    "steps" in d and len(d["steps"]) == 2 and
                     "defect_classes" in d and len(d["defect_classes"]) == 9 and
                     "scoring_classes" in d and len(d["scoring_classes"]) == 4
                 ) else (False, f"Invalid pipeline structure: steps={len(d.get('steps', []))}, defects={len(d.get('defect_classes', []))}, scoring={len(d.get('scoring_classes', []))}")
@@ -128,12 +128,16 @@ class BeaverAPITester:
             validate_fn=lambda d: (
                 (True, "") if (
                     "product_types" in d and len(d["product_types"]) == 4 and
-                    "quality_classes" in d and len(d["quality_classes"]) == 6 and
-                    "questions" in d and len(d["questions"]) == 15 and
-                    d.get("total") == 15 and
+                    "quality_classes" in d and
+                    "answer_groups" in d and len(d["answer_groups"]) == 4 and
+                    sum(len(g["options"]) for g in d["answer_groups"]) == 18 and
+                    "questions" in d and len(d["questions"]) == 10 and
+                    d.get("total") == 10 and
                     # Verify questions don't have correct_answer or explanation
-                    all("correct_answer" not in q and "explanation" not in q for q in d["questions"])
-                ) else (False, f"Invalid quiz structure: product_types={len(d.get('product_types', []))}, quality_classes={len(d.get('quality_classes', []))}, questions={len(d.get('questions', []))}, total={d.get('total')}")
+                    all("correct_answer" not in q and "explanation" not in q for q in d["questions"]) and
+                    # Verify questions have id, image_url, product_type
+                    all("id" in q and "image_url" in q and "product_type" in q for q in d["questions"])
+                ) else (False, f"Invalid quiz structure: product_types={len(d.get('product_types', []))}, answer_groups={len(d.get('answer_groups', []))}, total_options={sum(len(g['options']) for g in d.get('answer_groups', []))}, questions={len(d.get('questions', []))}, total={d.get('total')}")
             )
         )
 
@@ -148,27 +152,23 @@ class BeaverAPITester:
         # ===== Quiz Submit - All Correct Answers =====
         print("\n📋 QUIZ SUBMIT - ALL CORRECT")
         if success and quiz_data:
-            # Build all correct answers (hardcoded from quiz_data.py)
+            # Build all correct answers using new format (QBA, QB1, etc.)
+            # Based on quiz_data.py correct_answer values
             correct_answers = [
-                {"question_id": "q1", "selected": "a"},
-                {"question_id": "q2", "selected": "b"},
-                {"question_id": "q3", "selected": "b"},
-                {"question_id": "q4", "selected": "b"},
-                {"question_id": "q5", "selected": "c"},
-                {"question_id": "q6", "selected": "c"},
-                {"question_id": "q7", "selected": "b"},
-                {"question_id": "q8", "selected": "b"},
-                {"question_id": "q9", "selected": "c"},
-                {"question_id": "q10", "selected": "b"},
-                {"question_id": "q11", "selected": "c"},
-                {"question_id": "q12", "selected": "c"},
-                {"question_id": "q13", "selected": "b"},
-                {"question_id": "q14", "selected": "c"},
-                {"question_id": "q15", "selected": "b"},
+                {"question_id": "img1", "selected": "QBA"},
+                {"question_id": "img2", "selected": "QB2"},
+                {"question_id": "img3", "selected": "QS1"},
+                {"question_id": "img4", "selected": "QS3"},
+                {"question_id": "img5", "selected": "QF1B"},
+                {"question_id": "img6", "selected": "QF2"},
+                {"question_id": "img7", "selected": "QF4"},
+                {"question_id": "img8", "selected": "QP1"},
+                {"question_id": "img9", "selected": "QPA"},
+                {"question_id": "img10", "selected": "QB4"},
             ]
             
             self.test(
-                "POST /api/quiz/submit with all correct answers (15/15)",
+                "POST /api/quiz/submit with all correct answers (10/10)",
                 "POST", "quiz/submit", 200,
                 data={
                     "answers": correct_answers,
@@ -178,11 +178,13 @@ class BeaverAPITester:
                 },
                 validate_fn=lambda d: (
                     (True, "") if (
-                        d.get("score") == 15 and
-                        d.get("total") == 15 and
+                        d.get("score") == 10 and
+                        d.get("total") == 10 and
                         d.get("percentage") == 100.0 and
-                        "details" in d and len(d["details"]) == 15 and
+                        "details" in d and len(d["details"]) == 10 and
                         all(item.get("is_correct") for item in d["details"]) and
+                        # Verify details have selected_code and correct_code (formatted with spaces/dashes)
+                        all(item.get("selected_code") and item.get("correct_code") for item in d["details"]) and
                         "id" in d and "completed_at" in d
                     ) else (False, f"Invalid quiz result: score={d.get('score')}, total={d.get('total')}, percentage={d.get('percentage')}, details_count={len(d.get('details', []))}")
                 )
@@ -192,33 +194,28 @@ class BeaverAPITester:
         print("\n📋 QUIZ SUBMIT - MIXED ANSWERS")
         if success and quiz_data:
             mixed_answers = [
-                {"question_id": "q1", "selected": "a"},  # correct
-                {"question_id": "q2", "selected": "a"},  # wrong
-                {"question_id": "q3", "selected": "b"},  # correct
-                {"question_id": "q4", "selected": "a"},  # wrong
-                {"question_id": "q5", "selected": "c"},  # correct
-                {"question_id": "q6", "selected": "a"},  # wrong
-                {"question_id": "q7", "selected": "b"},  # correct
-                {"question_id": "q8", "selected": "b"},  # correct
-                {"question_id": "q9", "selected": "c"},  # correct
-                {"question_id": "q10", "selected": "a"}, # wrong
-                {"question_id": "q11", "selected": "c"}, # correct
-                {"question_id": "q12", "selected": "c"}, # correct
-                {"question_id": "q13", "selected": "b"}, # correct
-                {"question_id": "q14", "selected": "c"}, # correct
-                {"question_id": "q15", "selected": "b"}, # correct
+                {"question_id": "img1", "selected": "QBA"},   # correct
+                {"question_id": "img2", "selected": "QB1"},   # wrong (correct is QB2)
+                {"question_id": "img3", "selected": "QS1"},   # correct
+                {"question_id": "img4", "selected": "QS1"},   # wrong (correct is QS3)
+                {"question_id": "img5", "selected": "QF1B"},  # correct
+                {"question_id": "img6", "selected": "QF1A"},  # wrong (correct is QF2)
+                {"question_id": "img7", "selected": "QF4"},   # correct
+                {"question_id": "img8", "selected": "QP1"},   # correct
+                {"question_id": "img9", "selected": "QPA"},   # correct
+                {"question_id": "img10", "selected": "QB3"},  # wrong (correct is QB4)
             ]
             
             self.test(
-                "POST /api/quiz/submit with mixed answers (11/15)",
+                "POST /api/quiz/submit with mixed answers (6/10)",
                 "POST", "quiz/submit", 200,
                 data={"answers": mixed_answers},
                 validate_fn=lambda d: (
                     (True, "") if (
-                        d.get("score") == 11 and
-                        d.get("total") == 15 and
-                        abs(d.get("percentage", 0) - 73.3) < 0.1 and
-                        "details" in d and len(d["details"]) == 15
+                        d.get("score") == 6 and
+                        d.get("total") == 10 and
+                        d.get("percentage") == 60.0 and
+                        "details" in d and len(d["details"]) == 10
                     ) else (False, f"Invalid quiz result: score={d.get('score')}, total={d.get('total')}, percentage={d.get('percentage')}")
                 )
             )

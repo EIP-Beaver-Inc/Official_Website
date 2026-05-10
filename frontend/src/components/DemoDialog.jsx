@@ -15,7 +15,7 @@ import { ArrowRight, BadgeCheck, FileText, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { submitDemoRequest } from '@/lib/api';
 
-export default function DemoDialog({ triggerClassName, triggerLabel = 'Demander une démo', testId = 'open-demo-dialog-button' }) {
+export default function DemoDialog({ triggerClassName, triggerLabel = 'Demander un devis', testId = 'open-demo-dialog-button' }) {
     const [open, setOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [form, setForm] = useState({
@@ -65,10 +65,10 @@ export default function DemoDialog({ triggerClassName, triggerLabel = 'Demander 
             >
                 <DialogHeader>
                     <DialogTitle className="font-heading text-2xl sm:text-3xl tracking-tight">
-                        Demander une <span className="brick-italic">démo</span>
+                        Demander un <span className="brick-italic">devis</span>
                     </DialogTitle>
                     <DialogDescription className="text-sm text-[hsl(var(--muted-foreground))]">
-                        On revient vers vous sous 48h avec un créneau et un sample d’analyse adapté à votre ligne de production.
+                        On revient vers vous sous 48h avec un devis personnalisé et un sample d'analyse adapté à votre ligne de production.
                     </DialogDescription>
                 </DialogHeader>
 

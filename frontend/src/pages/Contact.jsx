@@ -43,7 +43,7 @@ export default function Contact() {
                     Une question, un cas <span className="brick-italic">complexe ?</span>
                 </h1>
                 <p className="mt-5 max-w-2xl text-[hsl(var(--muted-foreground))] leading-[1.7]">
-                    Écrivez-nous : nos ingénieurs répondent en moins de 48h. Pour toute demande de démo ligne de production, utilisez le bouton « Demander une démo » en haut de page.
+                    Écrivez-nous : nos ingénieurs répondent en moins de 48h. Pour toute demande de devis ligne de production, utilisez le bouton « Demander un devis » en haut de page.
                 </p>
             </div>
 
