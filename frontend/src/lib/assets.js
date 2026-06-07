@@ -1,5 +1,4 @@
-export const LOGO_URL =
-    'https://customer-assets.emergentagent.com/job_b42adf92-a9e6-4bb5-a663-a3501b832c94/artifacts/w80li2v9_zqsedrghj.png';
+export const LOGO_URL = '/assets/beaver-logo.png';
 
 export const HERO_IMAGE_URL =
     'https://images.unsplash.com/photo-1597008641621-cefdcf7187d5?auto=format&fit=crop&w=1600&q=80';
