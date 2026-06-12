@@ -24,5 +24,5 @@ export default defineConfig({
       loader: { '.js': 'jsx' },
     },
   },
-  publicDir: false,
+  publicDir: 'public',
 })
