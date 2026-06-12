@@ -21,7 +21,7 @@ export default function FinalCTA() {
             />
             <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-32 text-center">
                 <div data-animate="fade-up" className="label-caps mb-6">
-                    <span className="text-[hsl(var(--primary))]">04</span> · Passer à l'action
+                    <span className="text-[hsl(var(--primary))]">03</span> · Passer à l'action
                 </div>
                 <h2
                     data-animate="fade-up"

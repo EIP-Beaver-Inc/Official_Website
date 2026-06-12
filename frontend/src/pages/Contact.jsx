@@ -114,21 +114,21 @@ export default function Contact() {
                             <div className="flex items-start gap-3">
                                 <Mail className="h-4 w-4 mt-0.5 text-[hsl(var(--primary))]" />
                                 <div>
-                                    <div className="font-medium">contact@beaver-vision.fr</div>
+                                    <div className="font-medium">beaver.eip@gmail.com</div>
                                     <div className="text-[hsl(var(--muted-foreground))]">Réponse sous 48h ouvrées</div>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
                                 <Phone className="h-4 w-4 mt-0.5 text-[hsl(var(--primary))]" />
                                 <div>
-                                    <div className="font-medium">+33 (0)4 79 00 00 00</div>
+                                    <div className="font-medium text-[hsl(var(--muted-foreground))] italic">Coming soon</div>
                                     <div className="text-[hsl(var(--muted-foreground))]">Lun – Ven · 9h – 18h</div>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3">
                                 <MapPin className="h-4 w-4 mt-0.5 text-[hsl(var(--primary))]" />
                                 <div>
-                                    <div className="font-medium">Chambéry, Savoie</div>
+                                    <div className="font-medium">Lyon, 69007</div>
                                     <div className="text-[hsl(var(--muted-foreground))]">Rhône-Alpes · France</div>
                                 </div>
                             </div>

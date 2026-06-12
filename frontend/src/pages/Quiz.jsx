@@ -45,7 +45,7 @@ function AnswerGrid({ groups, selectedKey, onSelect }) {
             {groups.map((g) => (
                 <fieldset key={g.label} className="rounded-2xl border border-black/5 bg-[hsl(var(--background))] p-4 sm:p-5">
                     <legend className="label-caps !tracking-[0.18em] px-2 text-[hsl(var(--primary))]">{g.label}</legend>
-                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="mt-2 grid grid-cols-2 gap-2">
                         {g.options.map((opt) => {
                             const active = selectedKey === opt.key;
                             return (
@@ -55,16 +55,16 @@ function AnswerGrid({ groups, selectedKey, onSelect }) {
                                     data-testid="quiz-answer-option"
                                     data-key={opt.key}
                                     onClick={() => onSelect(opt.key)}
-                                    className={`group rounded-xl border px-3 py-2.5 text-left transition-colors duration-150 ease-out ${
+                                    className={`group rounded-xl border px-3 py-3 text-left transition-colors duration-150 ease-out ${
                                         active
                                             ? 'border-[hsl(var(--primary))] bg-[hsla(14,64%,42%,0.08)]'
                                             : 'border-black/10 hover:border-black/30 bg-[hsl(var(--card))]'
                                     }`}
                                 >
-                                    <div className={`font-heading italic text-base sm:text-lg leading-none ${active ? 'text-[hsl(var(--primary))]' : ''}`}>
+                                    <div className={`font-heading italic text-base leading-none ${active ? 'text-[hsl(var(--primary))]' : ''}`}>
                                         {opt.code}
                                     </div>
-                                    <div className="mt-1 text-[10px] tracking-[0.1em] uppercase text-[hsl(var(--muted-foreground))]">
+                                    <div className="mt-1.5 text-[10px] tracking-[0.08em] uppercase text-[hsl(var(--muted-foreground))] leading-tight">
                                         {opt.hint}
                                     </div>
                                 </button>
@@ -226,17 +226,14 @@ export default function Quiz() {
                                     <ImageIcon className="h-3 w-3" /> {current.product_type}
                                 </span>
                             </div>
-                            <div className="aspect-[4/3] bg-[hsl(38_45%_92%)]">
+                            <div className="bg-[hsl(38_45%_92%)] flex items-center justify-center p-2">
                                 <img
                                     src={current.image_url}
                                     alt={`Échantillon chêne ${idx + 1}`}
                                     data-testid="quiz-image"
-                                    className="h-full w-full object-cover"
+                                    className="max-h-72 w-full object-contain"
                                     loading="eager"
                                 />
-                            </div>
-                            <div className="px-4 py-2.5 text-[10px] tracking-[0.14em] uppercase text-[hsl(var(--muted-foreground))] border-t border-black/5 bg-[hsl(38_50%_94%)]">
-                                Image de démonstration · à remplacer par vos échantillons annotés
                             </div>
                         </div>
                     </div>
