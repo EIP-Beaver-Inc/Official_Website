@@ -1,10 +1,13 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Depends
+from fastapi.security import APIKeyHeader
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import secrets
+import string
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
@@ -41,6 +44,22 @@ def _doc_to_public(doc: dict) -> dict:
         return doc
     doc.pop('_id', None)
     return doc
+
+
+def _generate_beta_key() -> str:
+    chars = string.ascii_uppercase + string.digits
+    parts = [''.join(secrets.choice(chars) for _ in range(4)) for _ in range(4)]
+    return '-'.join(parts)
+
+
+# ====================== Admin auth ======================
+_admin_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
+
+
+async def require_admin(token: str = Depends(_admin_key_header)):
+    expected = os.environ.get("ADMIN_TOKEN", "")
+    if not expected or token != expected:
+        raise HTTPException(status_code=401, detail="Accès non autorisé.")
 
 
 # ====================== Models ======================
@@ -108,6 +127,46 @@ class QuizResult(BaseModel):
     email: Optional[str] = None
     nom: Optional[str] = None
     entreprise: Optional[str] = None
+
+
+class AdminLogin(BaseModel):
+    password: str
+
+
+class BetaKeyGenerate(BaseModel):
+    company: Optional[str] = Field(default=None, max_length=200)
+    notes: Optional[str] = Field(default=None, max_length=500)
+    expires_at: Optional[str] = None
+
+
+class BetaKey(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    key: str = Field(default_factory=_generate_beta_key)
+    status: str = "unused"
+    company: Optional[str] = None
+    notes: Optional[str] = None
+    created_at: str = Field(default_factory=_now_iso)
+    expires_at: Optional[str] = None
+    used_at: Optional[str] = None
+
+
+class BetaValidate(BaseModel):
+    key: str
+    company: str = Field(min_length=1, max_length=200)
+    contact_name: str = Field(min_length=1, max_length=120)
+    email: EmailStr
+    phone: Optional[str] = Field(default=None, max_length=40)
+
+
+class BetaClient(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    key: str
+    company: str
+    contact_name: str
+    email: str
+    phone: Optional[str] = None
+    registered_at: str = Field(default_factory=_now_iso)
+    session_token: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
 
 # ====================== Routes ======================
@@ -217,6 +276,85 @@ async def list_contacts(limit: int = 200):
     cursor = db.contacts.find({}, {"_id": 0}).sort("created_at", -1).limit(limit)
     items = await cursor.to_list(length=limit)
     return items
+
+
+# ---- Beta access ----
+@api_router.post("/beta/validate")
+async def validate_beta_key(payload: BetaValidate):
+    normalized = payload.key.strip().upper()
+    doc = await db.beta_keys.find_one({"key": normalized}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Clé invalide.")
+    if doc["status"] == "active":
+        raise HTTPException(status_code=409, detail="Cette clé a déjà été utilisée.")
+    if doc["status"] == "expired":
+        raise HTTPException(status_code=410, detail="Cette clé est expirée.")
+    if doc["status"] == "revoked":
+        raise HTTPException(status_code=403, detail="Cette clé a été révoquée. Contactez Beaver.")
+    if doc.get("expires_at"):
+        exp = datetime.fromisoformat(doc["expires_at"])
+        if exp.tzinfo is None:
+            exp = exp.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > exp:
+            await db.beta_keys.update_one({"key": normalized}, {"$set": {"status": "expired"}})
+            raise HTTPException(status_code=410, detail="Cette clé est expirée.")
+
+    client = BetaClient(
+        key=normalized,
+        company=payload.company,
+        contact_name=payload.contact_name,
+        email=payload.email,
+        phone=payload.phone,
+    )
+    await db.beta_clients.insert_one(client.model_dump())
+    await db.beta_keys.update_one(
+        {"key": normalized},
+        {"$set": {"status": "active", "used_at": _now_iso()}},
+    )
+    return {"success": True, "session_token": client.session_token, "client_id": client.id}
+
+
+# ---- Admin ----
+@api_router.post("/admin/login")
+async def admin_login(payload: AdminLogin):
+    expected = os.environ.get("ADMIN_TOKEN", "")
+    if not expected or payload.password != expected:
+        raise HTTPException(status_code=401, detail="Mot de passe incorrect.")
+    return {"success": True, "token": expected}
+
+
+@api_router.post("/admin/beta/generate", dependencies=[Depends(require_admin)])
+async def generate_beta_key_endpoint(payload: BetaKeyGenerate):
+    beta_key = BetaKey(company=payload.company, notes=payload.notes, expires_at=payload.expires_at)
+    await db.beta_keys.insert_one(beta_key.model_dump())
+    doc = beta_key.model_dump()
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.get("/admin/beta/keys", dependencies=[Depends(require_admin)])
+async def list_beta_keys(limit: int = 200):
+    cursor = db.beta_keys.find({}, {"_id": 0}).sort("created_at", -1).limit(limit)
+    return await cursor.to_list(length=limit)
+
+
+@api_router.get("/admin/beta/clients", dependencies=[Depends(require_admin)])
+async def list_beta_clients(limit: int = 200):
+    cursor = db.beta_clients.find({}, {"_id": 0}).sort("registered_at", -1).limit(limit)
+    return await cursor.to_list(length=limit)
+
+
+@api_router.delete("/admin/beta/clients/{client_id}", dependencies=[Depends(require_admin)])
+async def delete_beta_client(client_id: str):
+    client = await db.beta_clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client introuvable.")
+    await db.beta_keys.update_one(
+        {"key": client["key"]},
+        {"$set": {"status": "revoked", "used_at": None}},
+    )
+    await db.beta_clients.delete_one({"id": client_id})
+    return {"success": True}
 
 
 # Include router and middleware

@@ -31,7 +31,7 @@ ANSWER_GROUPS: List[Dict] = [
     {
         "label": "Frises et avivés (F)",
         "options": [
-            {"key": "QF1A", "code": "Q-F 1a", "hint": "Droit fil (3%)"},
+            {"key": "QF1A", "code": "Q-F 1a", "hint": "Droit fil"},
             {"key": "QF1B", "code": "Q-F 1b", "hint": "Supérieure"},
             {"key": "QF2",  "code": "Q-F 2",  "hint": "Standard"},
             {"key": "QF3",  "code": "Q-F 3",  "hint": "Courante"},

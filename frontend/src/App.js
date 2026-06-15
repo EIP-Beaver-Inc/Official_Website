@@ -6,6 +6,10 @@ import Footer from '@/components/Footer';
 import Home from '@/pages/Home';
 import Quiz from '@/pages/Quiz';
 import Contact from '@/pages/Contact';
+import Beta from '@/pages/Beta';
+import BetaDownload from '@/pages/BetaDownload';
+import AdminLogin from '@/pages/AdminLogin';
+import Admin from '@/pages/Admin';
 import NotFound from '@/pages/NotFound';
 import '@/App.css';
 
@@ -56,6 +60,24 @@ function App() {
                         </Layout>
                     }
                 />
+                <Route
+                    path="/beta"
+                    element={
+                        <Layout>
+                            <Beta />
+                        </Layout>
+                    }
+                />
+                <Route
+                    path="/beta/download"
+                    element={
+                        <Layout>
+                            <BetaDownload />
+                        </Layout>
+                    }
+                />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin" element={<Admin />} />
                 <Route
                     path="*"
                     element={
