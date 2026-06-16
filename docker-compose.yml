@@ -14,12 +14,11 @@ services:
   backend:
     build: ./backend
     restart: unless-stopped
-    env_file:
-      - ./backend/.env
     environment:
-      - MONGO_URL=mongodb://mongo:27017
-      - DB_NAME=beaver_db
-      - CORS_ORIGINS=*
+      - MONGO_URL=${MONGO_URL}
+      - DB_NAME=${DB_NAME}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
     depends_on:
       mongo:
         condition: service_healthy
