@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header
 from fastapi.security import APIKeyHeader
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -278,6 +278,26 @@ async def list_contacts(limit: int = 200):
     return items
 
 
+# ---- Tutorials ----
+def _load_tutorials() -> list:
+    tutorials_dir = ROOT_DIR / "tutorials"
+    if not tutorials_dir.is_dir():
+        return []
+    items = []
+    for f in sorted(tutorials_dir.glob("*.json")):
+        try:
+            import json
+            items.append(json.loads(f.read_text(encoding="utf-8")))
+        except Exception:
+            pass
+    return sorted(items, key=lambda t: t.get("order", 999))
+
+
+@api_router.get("/beta/tutorials")
+async def get_tutorials():
+    return {"tutorials": _load_tutorials()}
+
+
 # ---- Beta access ----
 @api_router.post("/beta/validate")
 async def validate_beta_key(payload: BetaValidate):
@@ -312,6 +332,28 @@ async def validate_beta_key(payload: BetaValidate):
         {"$set": {"status": "active", "used_at": _now_iso()}},
     )
     return {"success": True, "session_token": client.session_token, "client_id": client.id}
+
+
+@api_router.get("/beta/me")
+async def get_beta_me(authorization: Optional[str] = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Token requis.")
+    token = authorization[len("Bearer "):]
+    client = await db.beta_clients.find_one({"session_token": token}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=401, detail="Session invalide.")
+    key_doc = await db.beta_keys.find_one({"key": client["key"]}, {"_id": 0})
+    if key_doc and key_doc.get("status") == "revoked":
+        raise HTTPException(status_code=403, detail="Accès révoqué.")
+    return {
+        "client_id": client["id"],
+        "company": client["company"],
+        "contact_name": client["contact_name"],
+        "email": client["email"],
+        "registered_at": client["registered_at"],
+        "key": client["key"],
+        "expires_at": key_doc.get("expires_at") if key_doc else None,
+    }
 
 
 # ---- Admin ----

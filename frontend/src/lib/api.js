@@ -50,6 +50,21 @@ export async function validateBetaKey(payload) {
     return r.data;
 }
 
+function betaHeaders() {
+    const token = localStorage.getItem('beaver_beta_token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export async function fetchBetaMe() {
+    const r = await api.get('/beta/me', { headers: betaHeaders() });
+    return r.data;
+}
+
+export async function fetchTutorials() {
+    const r = await api.get('/beta/tutorials', { headers: betaHeaders() });
+    return r.data.tutorials;
+}
+
 // ---- Admin ----
 export async function adminLogin(password) {
     const r = await api.post('/admin/login', { password });

@@ -1,0 +1,30 @@
+{
+  "id": "results",
+  "order": 4,
+  "title": "Lire et interpréter les résultats",
+  "category": "Utilisation",
+  "description": "Comprendre les classes EN 975-1 affichées par Beaver et le rapport qualité généré.",
+  "duration": "10 min",
+  "steps": [
+    {
+      "title": "Les 4 familles de produits",
+      "content": "Beaver classe chaque planche selon la norme EN 975-1 en 4 familles : Q-B (plots reconstitués), Q-S (plateaux sélectionnés), Q-F (frises et avivés), Q-P (pièces équarries). La famille est détectée automatiquement à partir des dimensions de la pièce."
+    },
+    {
+      "title": "Les niveaux de qualité",
+      "content": "Au sein de chaque famille, Beaver attribue un niveau : A (exceptionnel), 1 (supérieur), 2 (courant), 3 (industriel), 4 (déclassé). Par exemple Q-B 1 = plot de qualité supérieure, Q-F 4 = frise déclassée."
+    },
+    {
+      "title": "L'interface de classification en temps réel",
+      "content": "En mode production, la vue principale affiche le flux caméra avec les défauts détectés encadrés et étiquetés (nœud, fissure, aubier…). La classe attribuée apparaît en bas à droite, mise à jour planche par planche."
+    },
+    {
+      "title": "Le rapport de session",
+      "content": "À la fin d'une session de production, allez dans Fichier → Rapport. Beaver génère un résumé avec le nombre de planches analysées, la distribution des classes, le taux de déclassement et les défauts les plus fréquents."
+    },
+    {
+      "title": "Corriger manuellement une classification",
+      "content": "Si vous constatez une erreur de classification sur une planche, cliquez dessus dans l'historique et choisissez « Corriger la classe ». Ces corrections sont enregistrées et nous aident à améliorer le modèle."
+    }
+  ]
+}

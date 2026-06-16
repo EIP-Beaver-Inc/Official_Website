@@ -1,0 +1,26 @@
+{
+  "id": "export",
+  "order": 5,
+  "title": "Exporter les données pour le retour beta",
+  "category": "Bêta",
+  "description": "Exporter la base de données locale et les logs d'erreur à envoyer à l'équipe Beaver en fin de bêta.",
+  "duration": "5 min",
+  "steps": [
+    {
+      "title": "Exporter la base de données locale",
+      "content": "Dans Beaver, allez dans Fichier → Exporter → Base de données. Choisissez un répertoire de destination. Un fichier beaver_data.db sera créé. Ce fichier contient l'historique des classifications et vos corrections manuelles : c'est la donnée la plus précieuse pour nous."
+    },
+    {
+      "title": "Exporter les logs d'erreur",
+      "content": "Allez dans Aide → Afficher les logs. Cliquez sur « Exporter les logs ». Un fichier beaver_logs.zip sera créé dans le répertoire de données (configurable dans Fichier → Paramètres → Général)."
+    },
+    {
+      "title": "Remplir le formulaire de retour UX",
+      "content": "L'équipe Beaver vous enverra un formulaire de retour par email en fin de bêta. Prenez 15 à 20 minutes pour le remplir : vos retours sur l'interface, la précision, les cas difficiles et les fonctionnalités manquantes sont essentiels pour la V1."
+    },
+    {
+      "title": "Envoyer les fichiers",
+      "content": "Envoyez par email à beaver.eip@gmail.com les deux fichiers exportés (beaver_data.db et beaver_logs.zip) accompagnés du formulaire rempli. Si les fichiers sont trop volumineux, utilisez un service de transfert (WeTransfer, Google Drive…)."
+    }
+  ]
+}

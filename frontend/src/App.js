@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { useFadeUpObserver } from '@/hooks/useFadeUp';
 import Header from '@/components/Header';
@@ -7,7 +7,7 @@ import Home from '@/pages/Home';
 import Quiz from '@/pages/Quiz';
 import Contact from '@/pages/Contact';
 import Beta from '@/pages/Beta';
-import BetaDownload from '@/pages/BetaDownload';
+import Account from '@/pages/Account';
 import AdminLogin from '@/pages/AdminLogin';
 import Admin from '@/pages/Admin';
 import NotFound from '@/pages/NotFound';
@@ -68,11 +68,12 @@ function App() {
                         </Layout>
                     }
                 />
+                <Route path="/beta/download" element={<Navigate to="/account" replace />} />
                 <Route
-                    path="/beta/download"
+                    path="/account"
                     element={
                         <Layout>
-                            <BetaDownload />
+                            <Account />
                         </Layout>
                     }
                 />

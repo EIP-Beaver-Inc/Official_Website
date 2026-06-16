@@ -29,8 +29,8 @@ export default function Beta() {
         try {
             setSubmitting(true);
             const data = await validateBetaKey(form);
-            sessionStorage.setItem('beaver_beta_token', data.session_token);
-            navigate('/beta/download');
+            localStorage.setItem('beaver_beta_token', data.session_token);
+            navigate('/account');
         } catch (err) {
             const status = err?.response?.status;
             const detail = err?.response?.data?.detail;

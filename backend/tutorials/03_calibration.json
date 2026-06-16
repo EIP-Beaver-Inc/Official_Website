@@ -1,0 +1,30 @@
+{
+  "id": "calibration",
+  "order": 3,
+  "title": "Calibration du système",
+  "category": "Configuration",
+  "description": "Calibrer Beaver avec des planches de référence pour obtenir des résultats précis.",
+  "duration": "15 min",
+  "steps": [
+    {
+      "title": "Préparer les planches de référence",
+      "content": "Munissez-vous d'au moins 3 planches dont vous connaissez la classe EN 975-1 avec certitude (idéalement une par catégorie : Q-B, Q-S, Q-F). Ces planches servent d'étalon pour ajuster les seuils de détection."
+    },
+    {
+      "title": "Lancer l'assistant de calibration",
+      "content": "Dans Beaver, cliquez sur Outils → Calibration. L'assistant s'ouvre et vous guide étape par étape. Assurez-vous que la caméra est bien connectée et que l'éclairage de la ligne est allumé avant de commencer."
+    },
+    {
+      "title": "Passer les planches sous la caméra",
+      "content": "Pour chaque planche, entrez la classe connue dans le champ prévu, puis faites passer la planche sous la caméra à la vitesse normale de production. Beaver capture automatiquement les images et analyse les défauts."
+    },
+    {
+      "title": "Valider les résultats de calibration",
+      "content": "Après les 3 planches minimum, Beaver affiche un rapport de calibration avec le taux de concordance. Un taux ≥ 85 % est recommandé. Si le taux est inférieur, vérifiez l'éclairage et la mise au point, puis recommencez."
+    },
+    {
+      "title": "Sauvegarder le profil de calibration",
+      "content": "Donnez un nom à votre profil (ex. « Ligne 1 – Chêne ») et cliquez sur Sauvegarder. Vous pouvez créer plusieurs profils pour différentes essences ou lignes de production."
+    }
+  ]
+}

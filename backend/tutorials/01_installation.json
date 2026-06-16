@@ -1,0 +1,26 @@
+{
+  "id": "installation",
+  "order": 1,
+  "title": "Installation et premier lancement",
+  "category": "Démarrage",
+  "description": "Télécharger, décompresser et lancer Beaver pour la première fois sur votre poste.",
+  "duration": "5 min",
+  "steps": [
+    {
+      "title": "Télécharger le binaire",
+      "content": "Depuis votre espace client, cliquez sur le bouton « Télécharger Beaver ». Une archive .zip (~150 Mo) sera téléchargée dans votre dossier Téléchargements."
+    },
+    {
+      "title": "Décompresser l'archive",
+      "content": "Faites un clic droit sur le fichier .zip et choisissez « Extraire tout ». Choisissez un répertoire accessible (ex. C:\\Beaver). Aucune installation système n'est requise : tout est contenu dans ce dossier."
+    },
+    {
+      "title": "Lancer Beaver.exe",
+      "content": "Double-cliquez sur Beaver.exe. Si Windows affiche une fenêtre SmartScreen (« Application inconnue »), cliquez sur « Informations complémentaires » puis « Exécuter quand même ». Cette alerte est normale pour un logiciel non encore signé commercialement."
+    },
+    {
+      "title": "Assistant de première configuration",
+      "content": "Au premier lancement, un assistant vous demande de choisir la langue, le répertoire de stockage des données (logs, base locale) et la résolution d'affichage. Ces paramètres peuvent être modifiés ensuite dans Fichier → Paramètres."
+    }
+  ]
+}
