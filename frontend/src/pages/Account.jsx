@@ -1,11 +1,16 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
     Download, BookOpen, MessageSquare, LogOut, Loader2,
     ChevronDown, ChevronRight, Clock, CheckCircle, Send,
+    Ticket, ArrowRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { fetchBetaMe, fetchTutorials } from '@/lib/api';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { fetchBetaMe, fetchTutorials, listMyTickets, submitFeedback } from '@/lib/api';
+
+const FEEDBACK_CATEGORIES = ['Interface', 'Performance', 'Précision IA', 'Documentation', 'Autre'];
 
 const DOWNLOAD_URL = '#';
 const APP_VERSION = '0.1.0-beta';
@@ -118,10 +123,79 @@ function FaqItem({ item }) {
     );
 }
 
+function FeedbackForm() {
+    const [form, setForm] = useState({ category: 'Autre', content: '' });
+    const [submitting, setSubmitting] = useState(false);
+    const [done, setDone] = useState(false);
+
+    const onSubmit = async (e) => {
+        e.preventDefault();
+        if (!form.content.trim()) return;
+        try {
+            setSubmitting(true);
+            await submitFeedback(form);
+            setDone(true);
+            setForm({ category: 'Autre', content: '' });
+            toast.success('Feedback envoyé, merci !');
+        } catch {
+            toast.error('Erreur lors de l\'envoi.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    if (done) return (
+        <div className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-6 text-center text-sm text-[hsl(var(--muted-foreground))]">
+            Merci pour votre retour ! <button onClick={() => setDone(false)} className="underline underline-offset-4 ml-1">Envoyer un autre</button>
+        </div>
+    );
+
+    return (
+        <form onSubmit={onSubmit} className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-6 space-y-4">
+            <div className="flex flex-col gap-1.5">
+                <Label className="label-caps">Catégorie</Label>
+                <div className="flex flex-wrap gap-2">
+                    {FEEDBACK_CATEGORIES.map((c) => (
+                        <button
+                            key={c} type="button"
+                            onClick={() => setForm((s) => ({ ...s, category: c }))}
+                            className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                                form.category === c
+                                    ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] border-transparent'
+                                    : 'border-black/10 hover:bg-[hsl(38_45%_94%)]'
+                            }`}
+                        >{c}</button>
+                    ))}
+                </div>
+            </div>
+            <div className="flex flex-col gap-1.5">
+                <Label className="label-caps">Votre remarque</Label>
+                <Textarea
+                    rows={4}
+                    value={form.content}
+                    onChange={(e) => setForm((s) => ({ ...s, content: e.target.value }))}
+                    placeholder="Décrivez votre remarque, une idée, une observation…"
+                    className="bg-[hsl(var(--background))]"
+                    required
+                />
+            </div>
+            <div className="flex justify-end">
+                <button
+                    type="submit" disabled={submitting}
+                    className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] disabled:opacity-60 text-[hsl(var(--primary-foreground))] px-5 h-10 text-sm font-medium transition-colors"
+                >
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4" />Envoyer</>}
+                </button>
+            </div>
+        </form>
+    );
+}
+
 export default function Account() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [tutorials, setTutorials] = useState([]);
+    const [ticketSummary, setTicketSummary] = useState({ total: 0, unread: 0 });
     const [loading, setLoading] = useState(true);
 
     const logout = () => {
@@ -136,9 +210,10 @@ export default function Account() {
             return;
         }
         try {
-            const [me, tutos] = await Promise.all([fetchBetaMe(), fetchTutorials()]);
+            const [me, tutos, ticketData] = await Promise.all([fetchBetaMe(), fetchTutorials(), listMyTickets()]);
             setUser(me);
             setTutorials(tutos);
+            setTicketSummary({ total: ticketData.tickets.length, unread: ticketData.unread_count });
         } catch (err) {
             const status = err?.response?.status;
             if (status === 401 || status === 403) {
@@ -250,12 +325,57 @@ export default function Account() {
                 )}
             </div>
 
+            {/* Tickets */}
+            <div>
+                <div className="flex items-center gap-2 mb-4">
+                    <Ticket className="h-4 w-4 text-[hsl(var(--primary))]" />
+                    <span className="label-caps">Mes tickets</span>
+                    {ticketSummary.unread > 0 && (
+                        <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] text-[11px] font-bold px-1.5">
+                            {ticketSummary.unread}
+                        </span>
+                    )}
+                </div>
+                <div className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-6 flex items-center justify-between gap-4">
+                    <div>
+                        <div className="text-sm font-medium">
+                            {ticketSummary.total === 0
+                                ? 'Aucun ticket pour l\'instant'
+                                : `${ticketSummary.total} ticket${ticketSummary.total > 1 ? 's' : ''}`}
+                        </div>
+                        {ticketSummary.unread > 0 && (
+                            <div className="mt-1 text-xs text-[hsl(var(--primary))] font-medium">
+                                {ticketSummary.unread} réponse{ticketSummary.unread > 1 ? 's' : ''} non lue{ticketSummary.unread > 1 ? 's' : ''}
+                            </div>
+                        )}
+                        <div className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
+                            Signalez un bug, posez une question ou demandez une amélioration.
+                        </div>
+                    </div>
+                    <Link
+                        to="/account/tickets"
+                        className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] text-[hsl(var(--primary-foreground))] px-4 h-10 text-sm font-medium transition-colors"
+                    >
+                        Voir mes tickets <ArrowRight className="h-4 w-4" />
+                    </Link>
+                </div>
+            </div>
+
             {/* FAQ */}
             <div>
                 <div className="label-caps mb-4">Questions fréquentes</div>
                 <div className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] px-5">
                     {FAQ.map((item, i) => <FaqItem key={i} item={item} />)}
                 </div>
+            </div>
+
+            {/* Feedback libre */}
+            <div>
+                <div className="label-caps mb-1">Feedback rapide</div>
+                <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4">
+                    Une remarque, une idée ? Envoyez-la directement sans créer de ticket.
+                </p>
+                <FeedbackForm />
             </div>
 
             {/* Beta feedback */}

@@ -8,6 +8,8 @@ import Quiz from '@/pages/Quiz';
 import Contact from '@/pages/Contact';
 import Beta from '@/pages/Beta';
 import Account from '@/pages/Account';
+import AccountTickets from '@/pages/AccountTickets';
+import AccountTicketDetail from '@/pages/AccountTicketDetail';
 import AdminLogin from '@/pages/AdminLogin';
 import Admin from '@/pages/Admin';
 import NotFound from '@/pages/NotFound';
@@ -76,6 +78,14 @@ function App() {
                             <Account />
                         </Layout>
                     }
+                />
+                <Route
+                    path="/account/tickets/:id"
+                    element={<Layout><AccountTicketDetail /></Layout>}
+                />
+                <Route
+                    path="/account/tickets"
+                    element={<Layout><AccountTickets /></Layout>}
                 />
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin" element={<Admin />} />
