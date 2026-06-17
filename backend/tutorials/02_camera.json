@@ -1,0 +1,30 @@
+{
+  "id": "camera",
+  "order": 2,
+  "title": "Connexion de la caméra",
+  "category": "Configuration",
+  "description": "Connecter une caméra IP (RTSP) ou USB à Beaver et vérifier le flux vidéo.",
+  "duration": "10 min",
+  "steps": [
+    {
+      "title": "Ouvrir les paramètres caméra",
+      "content": "Dans Beaver, allez dans Fichier → Paramètres → Caméra. Vous verrez les deux modes disponibles : USB (caméra branchée directement au PC) et IP/RTSP (caméra réseau)."
+    },
+    {
+      "title": "Caméra USB",
+      "content": "Branchez votre caméra USB avant de lancer Beaver. Dans l'onglet Caméra, sélectionnez « USB » et choisissez le périphérique dans la liste déroulante. Cliquez sur « Tester » pour voir le flux en direct."
+    },
+    {
+      "title": "Caméra IP (RTSP)",
+      "content": "Sélectionnez « IP / RTSP ». Entrez l'URL de votre flux, par exemple : rtsp://192.168.1.100:554/stream. Si votre caméra nécessite une authentification, utilisez le format : rtsp://user:password@192.168.1.100:554/stream."
+    },
+    {
+      "title": "Vérifier la qualité du flux",
+      "content": "La résolution recommandée est 1920×1080 minimum à 25 fps. Un indicateur de qualité (vert / orange / rouge) s'affiche dans la barre de statut. Si l'indicateur est orange ou rouge, vérifiez l'éclairage de la ligne et la mise au point de l'objectif."
+    },
+    {
+      "title": "Sauvegarder et appliquer",
+      "content": "Cliquez sur « Sauvegarder ». Beaver mémorise la configuration caméra et la rechargera automatiquement au prochain démarrage."
+    }
+  ]
+}

@@ -43,3 +43,124 @@ export async function submitDemoRequest(payload) {
     const r = await api.post('/demo-requests', payload);
     return r.data;
 }
+
+// ---- Beta ----
+export async function validateBetaKey(payload) {
+    const r = await api.post('/beta/validate', payload);
+    return r.data;
+}
+
+export async function betaLogin(key) {
+    const r = await api.post('/beta/login', { key });
+    return r.data;
+}
+
+function betaHeaders() {
+    const token = localStorage.getItem('beaver_beta_token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export async function fetchBetaMe() {
+    const r = await api.get('/beta/me', { headers: betaHeaders() });
+    return r.data;
+}
+
+export async function fetchTutorials() {
+    const r = await api.get('/beta/tutorials', { headers: betaHeaders() });
+    return r.data.tutorials;
+}
+
+// ---- Admin ----
+export async function adminLogin(password) {
+    const r = await api.post('/admin/login', { password });
+    return r.data;
+}
+
+function adminHeaders() {
+    const token = localStorage.getItem('beaver_admin_token');
+    return token ? { 'X-Admin-Token': token } : {};
+}
+
+export async function adminGenerateKey(payload) {
+    const r = await api.post('/admin/beta/generate', payload, { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminListKeys() {
+    const r = await api.get('/admin/beta/keys', { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminListClients() {
+    const r = await api.get('/admin/beta/clients', { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminDeleteClient(clientId) {
+    const r = await api.delete(`/admin/beta/clients/${clientId}`, { headers: adminHeaders() });
+    return r.data;
+}
+
+// ---- Tickets (client) ----
+export async function createTicket(payload) {
+    const r = await api.post('/beta/tickets', payload, { headers: betaHeaders() });
+    return r.data;
+}
+
+export async function listMyTickets() {
+    const r = await api.get('/beta/tickets', { headers: betaHeaders() });
+    return r.data;
+}
+
+export async function getTicket(ticketId) {
+    const r = await api.get(`/beta/tickets/${ticketId}`, { headers: betaHeaders() });
+    return r.data;
+}
+
+export async function markTicketSeen(ticketId) {
+    const r = await api.post(`/beta/tickets/${ticketId}/seen`, {}, { headers: betaHeaders() });
+    return r.data;
+}
+
+export async function addTicketMessage(ticketId, content) {
+    const r = await api.post(`/beta/tickets/${ticketId}/messages`, { content }, { headers: betaHeaders() });
+    return r.data;
+}
+
+export async function submitSatisfaction(ticketId, payload) {
+    const r = await api.post(`/beta/tickets/${ticketId}/satisfaction`, payload, { headers: betaHeaders() });
+    return r.data;
+}
+
+// ---- Feedback (client) ----
+export async function submitFeedback(payload) {
+    const r = await api.post('/beta/feedback', payload, { headers: betaHeaders() });
+    return r.data;
+}
+
+// ---- Tickets (admin) ----
+export async function adminListTickets(status) {
+    const params = status ? { status } : {};
+    const r = await api.get('/admin/tickets', { headers: adminHeaders(), params });
+    return r.data;
+}
+
+export async function adminUpdateTicketStatus(ticketId, status) {
+    const r = await api.patch(`/admin/tickets/${ticketId}`, { status }, { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminReplyTicket(ticketId, content) {
+    const r = await api.post(`/admin/tickets/${ticketId}/messages`, { content }, { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminListFeedback() {
+    const r = await api.get('/admin/feedback', { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminGetStats() {
+    const r = await api.get('/admin/stats', { headers: adminHeaders() });
+    return r.data;
+}

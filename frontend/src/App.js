@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { useFadeUpObserver } from '@/hooks/useFadeUp';
 import Header from '@/components/Header';
@@ -6,6 +6,12 @@ import Footer from '@/components/Footer';
 import Home from '@/pages/Home';
 import Quiz from '@/pages/Quiz';
 import Contact from '@/pages/Contact';
+import Beta from '@/pages/Beta';
+import Account from '@/pages/Account';
+import AccountTickets from '@/pages/AccountTickets';
+import AccountTicketDetail from '@/pages/AccountTicketDetail';
+import AdminLogin from '@/pages/AdminLogin';
+import Admin from '@/pages/Admin';
 import NotFound from '@/pages/NotFound';
 import '@/App.css';
 
@@ -56,6 +62,33 @@ function App() {
                         </Layout>
                     }
                 />
+                <Route
+                    path="/beta"
+                    element={
+                        <Layout>
+                            <Beta />
+                        </Layout>
+                    }
+                />
+                <Route path="/beta/download" element={<Navigate to="/account" replace />} />
+                <Route
+                    path="/account"
+                    element={
+                        <Layout>
+                            <Account />
+                        </Layout>
+                    }
+                />
+                <Route
+                    path="/account/tickets/:id"
+                    element={<Layout><AccountTicketDetail /></Layout>}
+                />
+                <Route
+                    path="/account/tickets"
+                    element={<Layout><AccountTickets /></Layout>}
+                />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin" element={<Admin />} />
                 <Route
                     path="*"
                     element={
