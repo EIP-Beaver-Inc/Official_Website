@@ -133,7 +133,7 @@ export default function AccountTickets() {
                     <Link to="/account" className="inline-flex items-center gap-1.5 text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] mb-3 transition-colors">
                         <ArrowLeft className="h-3.5 w-3.5" /> Retour à l'espace client
                     </Link>
-                    <h1 className="font-heading text-3xl tracking-[-0.02em]">Mes tickets</h1>
+                    <h1 className="font-display font-semibold text-4xl sm:text-5xl tracking-[-0.04em]">Mes tickets</h1>
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
@@ -146,7 +146,7 @@ export default function AccountTickets() {
             {loading ? (
                 <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-[hsl(var(--muted-foreground))]" /></div>
             ) : tickets.length === 0 ? (
-                <div className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-12 text-center">
+                <div className="rounded-3xl border border-black/5 bg-card p-12 text-center">
                     <div className="text-sm text-[hsl(var(--muted-foreground))] mb-4">Aucun ticket pour l'instant.</div>
                     <button onClick={() => setShowModal(true)}
                         className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] text-[hsl(var(--primary-foreground))] px-5 h-10 text-sm font-medium transition-colors">

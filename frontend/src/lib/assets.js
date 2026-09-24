@@ -1,4 +1,10 @@
-export const LOGO_URL = '/assets/beaver-logo.png';
+export const LOGO_URL = '/assets/beaver-logo.svg';
+export const WORDMARK_URL = '/assets/beaver-name.png';
+
+export const HERO_VIDEOS = [
+    { src: '/assets/VideoAnalise1.mp4', poster: '/assets/wood_7_Q-B_1.jpg' },
+    { src: '/assets/VideoAnalise2.mp4', poster: '/assets/wood_3_Q-S_2.jpg' },
+];
 
 export const HERO_IMAGE_URL =
     'https://images.unsplash.com/photo-1597008641621-cefdcf7187d5?auto=format&fit=crop&w=1600&q=80';

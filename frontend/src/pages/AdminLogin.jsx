@@ -32,13 +32,13 @@ export default function AdminLogin() {
                 <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(var(--primary)/0.1)] mb-4">
                     <Lock className="h-6 w-6 text-[hsl(var(--primary))]" />
                 </span>
-                <h1 className="font-heading text-3xl tracking-[-0.02em]">Administration</h1>
+                <h1 className="font-display font-semibold text-4xl tracking-[-0.04em]">Administration</h1>
                 <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">Accès réservé à l'équipe Beaver.</p>
             </div>
 
             <form
                 onSubmit={onSubmit}
-                className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-6 shadow-[0_18px_44px_rgba(17,17,17,0.06)]"
+                className="rounded-3xl border border-black/5 bg-card p-6 shadow-[0_18px_44px_rgba(17,17,17,0.06)]"
             >
                 <div className="flex flex-col gap-1.5">
                     <Label className="label-caps">Mot de passe admin</Label>

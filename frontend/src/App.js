@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { useFadeUpObserver } from '@/hooks/useFadeUp';
 import Header from '@/components/Header';
@@ -17,10 +17,11 @@ import '@/App.css';
 
 function Layout({ children }) {
     useFadeUpObserver();
+    const { pathname } = useLocation();
     return (
         <div className="App min-h-screen flex flex-col">
             <Header />
-            <main className="flex-1">{children}</main>
+            <main className={`flex-1 [overflow-x:clip] ${pathname === '/' ? '' : 'pt-20 sm:pt-28 pb-12'}`}>{children}</main>
             <Footer />
             <Toaster
                 position="top-right"
