@@ -3,8 +3,14 @@
 @tailwind utilities;
 
 :root {
-    --font-heading: 'Fraunces', ui-serif, Georgia, serif;
+    --font-display: 'Geist', 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    --font-heading: var(--font-display);
+    --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     --font-body: 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+html {
+    font-size: max(16px, min(calc(100vw / 90), calc(100vh / 56.25)));
 }
 
 html,
@@ -29,7 +35,6 @@ body {
 
 @layer base {
     :root {
-        /* BEAVER editorial palette — v2: warmer cream canvas + refined terracotta */
         --background: 42 36% 93%;
         --foreground: 25 18% 11%;
 
@@ -65,6 +70,8 @@ body {
         --chart-5: 25 12% 26%;
 
         --radius: 0.85rem;
+
+        --brick-light: 14 75% 60%;
     }
 }
 
@@ -81,24 +88,30 @@ body {
     h3,
     h4 {
         font-family: var(--font-heading);
-        font-feature-settings: 'ss01';
+        font-weight: 600;
+        letter-spacing: -0.035em;
+    }
+}
+
+@layer components {
+    .font-heading {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        letter-spacing: -0.03em;
     }
 }
 
 @layer utilities {
-    .font-heading {
-        font-family: var(--font-heading);
-    }
     .font-body {
         font-family: var(--font-body);
     }
     .label-caps {
-        font-family: var(--font-body);
-        font-size: 0.72rem;
-        letter-spacing: 0.18em;
+        font-family: var(--font-mono);
+        font-size: 0.6875rem;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
         color: hsl(var(--muted-foreground));
-        font-weight: 500;
+        font-weight: 400;
     }
     .meta-caps {
         font-family: var(--font-body);
@@ -108,8 +121,14 @@ body {
     }
     .brick-italic {
         font-family: var(--font-heading);
-        font-style: italic;
         color: hsl(var(--primary));
+    }
+    .font-display {
+        font-family: var(--font-display);
+        font-feature-settings: normal;
+    }
+    .font-mono-ui {
+        font-family: var(--font-mono);
     }
     .hero-bg {
         background:
@@ -152,9 +171,26 @@ body {
         transition: none;
     }
     .beaver-pulse-ring,
-    .beaver-spin {
+    .beaver-spin,
+    .beaver-marquee {
         animation: none !important;
     }
+}
+
+@keyframes beaver-marquee {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+    to {
+        transform: translate3d(-50%, 0, 0);
+    }
+}
+.beaver-marquee {
+    animation: beaver-marquee 40s linear infinite;
+}
+.text-outline {
+    color: transparent;
+    -webkit-text-stroke: 1px hsl(var(--primary));
 }
 
 /* Pulse dot used in live badge */

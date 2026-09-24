@@ -3,15 +3,15 @@ from typing import List, Dict
 
 
 DEFECT_CLASSES: List[Dict] = [
-    {"key": "noeud_vif",          "name": "Nœud vif",          "impact": "Mineur",       "description": "Nœud sain, adhérent, issu d'une branche vivante au moment de l'abattage. Bonne intégration mécanique."},
-    {"key": "noeud_mort",         "name": "Nœud mort",         "impact": "Modéré",      "description": "Nœud noir issu d'une branche déjà morte. Adhérence dégradée, risque de déchaussement."},
-    {"key": "fissure",            "name": "Fissure",            "impact": "Critique",     "description": "Fente longitudinale ou transversale. Compromet la résistance mécanique de la pièce."},
-    {"key": "bleuissement",       "name": "Bleuissement",       "impact": "Esthétique",   "description": "Coloration grise/bleutée due à des champignons (Ophiostoma) sur l'aubier humide."},
-    {"key": "moelle",             "name": "Moelle",             "impact": "Modéré",      "description": "Cœur de l'arbre. Tissu spongieux instable, fragilise la stabilité dimensionnelle."},
-    {"key": "resine",             "name": "Résine",             "impact": "Esthétique",   "description": "Poche ou suintement de résine. Affecte l'aspect et la finition de surface."},
-    {"key": "quartzite",          "name": "Quartzite",          "impact": "Critique",     "description": "Inclusion minérale dans le bois. Casse instantanément les outils de coupe."},
-    {"key": "noeud_manquant",     "name": "Nœud manquant",     "impact": "Modéré",      "description": "Cavité laissée par la chute d'un nœud. Trou traversant ou borgne."},
-    {"key": "noeud_avec_fissure", "name": "Nœud avec fissure", "impact": "Critique",     "description": "Nœud présentant une fente. Cumul de deux défauts : déclassant en classes inférieures."},
+    {"key": "noeud_vif",          "name": "Nœud vif",          "impact": "Mineur",       "description": "Nœud sain, adhérent, issu d'une branche vivante au moment de l'abattage. Bonne intégration mécanique.", "status": "live"},
+    {"key": "noeud_mort",         "name": "Nœud mort",         "impact": "Modéré",      "description": "Nœud noir issu d'une branche déjà morte. Adhérence dégradée, risque de déchaussement.", "status": "live"},
+    {"key": "fissure",            "name": "Fissure",            "impact": "Critique",     "description": "Fente longitudinale ou transversale. Compromet la résistance mécanique de la pièce.", "status": "live"},
+    {"key": "bleuissement",       "name": "Bleuissement",       "impact": "Esthétique",   "description": "Coloration grise/bleutée due à des champignons (Ophiostoma) sur l'aubier humide.", "status": "soon"},
+    {"key": "moelle",             "name": "Moelle",             "impact": "Modéré",      "description": "Cœur de l'arbre. Tissu spongieux instable, fragilise la stabilité dimensionnelle.", "status": "soon"},
+    {"key": "resine",             "name": "Résine",             "impact": "Esthétique",   "description": "Poche ou suintement de résine. Affecte l'aspect et la finition de surface.", "status": "soon"},
+    {"key": "quartzite",          "name": "Quartzite",          "impact": "Critique",     "description": "Inclusion minérale dans le bois. Casse instantanément les outils de coupe.", "status": "soon"},
+    {"key": "noeud_manquant",     "name": "Nœud manquant",     "impact": "Modéré",      "description": "Cavité laissée par la chute d'un nœud. Trou traversant ou borgne.", "status": "soon"},
+    {"key": "noeud_avec_fissure", "name": "Nœud avec fissure", "impact": "Critique",     "description": "Nœud présentant une fente. Cumul de deux défauts : déclassant en classes inférieures.", "status": "soon"},
 ]
 
 
@@ -28,7 +28,7 @@ PIPELINE_STEPS: List[Dict] = [
         "step": "02",
         "name": "BOBER",
         "sub": "YOLOv8 fine-tuné",
-        "description": "Localise 9 types de défauts sur la planche recadrée avec bounding boxes et indice de confiance, puis confirme chaque défaut sur 40 frames minimum.",
+        "description": "Localise les nœuds et les fissures sur la planche recadrée avec bounding boxes et indice de confiance, puis confirme chaque défaut sur 40 frames minimum.",
         "icon": "target",
     },
 ]

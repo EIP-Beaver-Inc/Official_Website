@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import DemoDialog from '@/components/DemoDialog';
 import PillButton from '@/components/PillButton';
 import { fetchQuiz, submitQuiz } from '@/lib/api';
+import PageHero from '@/components/PageHero';
 
 const STAGE = {
     INTRO: 'intro',
@@ -17,18 +18,20 @@ const STAGE = {
 
 function ProductTypesPanel({ types }) {
     return (
-        <div className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-6 sm:p-7">
+        <div>
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <span className="label-caps">01</span>
-                    <span className="font-heading text-lg sm:text-xl tracking-tight">Type de produit</span>
-                </div>
-                <span className="label-caps">4 familles normatives</span>
+                <span className="font-display font-semibold text-xl sm:text-2xl tracking-[-0.03em]">Type de produit</span>
+                <span className="label-caps">{types.length} familles normatives</span>
             </div>
             <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {types.map((t) => (
-                    <div key={t.letter} className="rounded-xl border border-black/5 bg-[hsl(var(--background))] p-4 sm:p-5">
-                        <div className="font-heading italic text-[hsl(var(--primary))] text-4xl sm:text-5xl leading-none">{t.letter}</div>
+                    <div
+                        key={t.letter}
+                        className="group rounded-3xl border border-black/5 bg-card p-5 sm:p-6 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-28px_rgba(60,35,20,0.45)]"
+                    >
+                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-display font-semibold text-2xl">
+                            {t.letter}
+                        </div>
                         <div className="mt-3 font-heading text-base sm:text-lg leading-tight">{t.name}</div>
                         <p className="mt-2 text-xs leading-[1.6] text-[hsl(var(--muted-foreground))]">{t.desc}</p>
                         <div className="mt-3 text-[10px] tracking-[0.14em] uppercase text-[hsl(var(--muted-foreground))]">{t.specs}</div>
@@ -61,7 +64,7 @@ function AnswerGrid({ groups, selectedKey, onSelect }) {
                                             : 'border-black/10 hover:border-black/30 bg-[hsl(var(--card))]'
                                     }`}
                                 >
-                                    <div className={`font-heading italic text-base leading-none ${active ? 'text-[hsl(var(--primary))]' : ''}`}>
+                                    <div className={`font-heading text-base leading-none ${active ? 'text-[hsl(var(--primary))]' : ''}`}>
                                         {opt.code}
                                     </div>
                                     <div className="mt-1.5 text-[10px] tracking-[0.08em] uppercase text-[hsl(var(--muted-foreground))] leading-tight">
@@ -186,15 +189,17 @@ export default function Quiz() {
             {/* INTRO */}
             {stage === STAGE.INTRO && (
                 <div data-animate="fade-up" className="mt-10">
-                    <div className="label-caps">Quiz EN 975-1 · Classement visuel</div>
-                    <h1 className="mt-3 font-heading text-4xl sm:text-5xl lg:text-6xl leading-[1.05] tracking-[-0.02em]">
-                        Classez {total} planches selon la <span className="brick-italic">norme officielle.</span>
-                    </h1>
-                    <p className="mt-5 max-w-2xl text-[hsl(var(--muted-foreground))] leading-[1.7]">
-                        Chaque image vous montre un échantillon de chêne. Choisissez la classe EN 975-1 qui lui correspond parmi les options Plots, Plateaux sélectionnés, Frises et avivés ou Pièces équarries. Durée estimée : 5 minutes.
-                    </p>
+                    <PageHero
+                        kicker="Quiz EN 975-1 · Classement visuel"
+                        title={
+                            <>
+                                Classez {total} planches selon la <span className="text-primary">norme officielle.</span>
+                            </>
+                        }
+                        subtitle="Chaque image vous montre un échantillon de chêne. Choisissez la classe EN 975-1 qui lui correspond parmi les options Plots, Plateaux sélectionnés, Frises et avivés ou Pièces équarries. Durée estimée : 5 minutes."
+                    />
 
-                    <div className="mt-8">
+                    <div className="mt-12">
                         <ProductTypesPanel types={data.product_types} />
                     </div>
 
@@ -246,7 +251,7 @@ export default function Quiz() {
                                 <span className="label-caps">EN 975-1</span>
                             </div>
                             <h2 className="mt-3 font-heading text-2xl sm:text-3xl leading-[1.15] tracking-tight">
-                                Quelle classification pour cet <span className="brick-italic">échantillon</span> ?
+                                Quelle classification pour cet <span className="brick-italic">échantillon</span>&nbsp;?
                             </h2>
 
                             <div className="mt-5">
@@ -292,7 +297,7 @@ export default function Quiz() {
                         Souhaitez-vous recevoir un <span className="brick-italic">débrief</span> par email ?
                     </h2>
                     <p className="mt-3 text-sm text-[hsl(var(--muted-foreground))] max-w-2xl">
-                        Optionnel — vous pouvez aussi voir vos résultats sans laisser de coordonnées.
+                        Optionnel, vous pouvez aussi voir vos résultats sans laisser de coordonnées.
                     </p>
                     <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="flex flex-col gap-1.5">
@@ -414,13 +419,13 @@ function ResultPanel({ result, onRestart }) {
                                 <div className="mt-3 grid grid-cols-2 gap-2">
                                     <div className="rounded-lg border border-black/5 bg-[hsl(var(--background))] p-2.5">
                                         <div className="label-caps">Votre choix</div>
-                                        <div className={`mt-1 font-heading italic text-base ${d.is_correct ? '' : 'text-[hsl(var(--primary))]'}`}>
+                                        <div className={`mt-1 font-heading text-base ${d.is_correct ? '' : 'text-[hsl(var(--primary))]'}`}>
                                             {d.selected_code || 'Non répondu'}
                                         </div>
                                     </div>
                                     <div className="rounded-lg border border-black/5 bg-[hsl(var(--background))] p-2.5">
                                         <div className="label-caps text-[hsl(var(--primary))]">Bonne réponse</div>
-                                        <div className="mt-1 font-heading italic text-base">{d.correct_code}</div>
+                                        <div className="mt-1 font-heading text-base">{d.correct_code}</div>
                                     </div>
                                 </div>
                                 <p className="mt-3 text-xs leading-[1.6] text-[hsl(var(--muted-foreground))]">{d.explanation}</p>
