@@ -36,7 +36,7 @@ const STEPS = [
         text: 'Pensé pour répondre aux limites du contrôle qualité manuel, Beaver combine caméras et modèles de vision par ordinateur entraînés spécifiquement pour l’analyse du bois.',
     },
     {
-        title: 'Temps réel : pas le temps de prendre racine.',
+        title: 'Pas le temps de prendre racine.',
         text: 'Le tout est exécuté en temps réel sur machine en scierie et directement connecté à un hardware embarqué.',
     },
     {
