@@ -127,108 +127,71 @@ class BeaverAPITester:
             "GET", "quiz/questions", 200,
             validate_fn=lambda d: (
                 (True, "") if (
-                    "product_types" in d and len(d["product_types"]) == 4 and
-                    "quality_classes" in d and
-                    "answer_groups" in d and len(d["answer_groups"]) == 4 and
-                    sum(len(g["options"]) for g in d["answer_groups"]) == 18 and
-                    "questions" in d and len(d["questions"]) == 10 and
-                    d.get("total") == 10 and
-                    # Verify questions don't have correct_answer or explanation
-                    all("correct_answer" not in q and "explanation" not in q for q in d["questions"]) and
-                    # Verify questions have id, image_url, product_type
-                    all("id" in q and "image_url" in q and "product_type" in q for q in d["questions"])
-                ) else (False, f"Invalid quiz structure: product_types={len(d.get('product_types', []))}, answer_groups={len(d.get('answer_groups', []))}, total_options={sum(len(g['options']) for g in d.get('answer_groups', []))}, questions={len(d.get('questions', []))}, total={d.get('total')}")
+                    d.get("title") and d.get("description") and
+                    len(d.get("questions", [])) == 20 and d.get("total") == 20 and
+                    all("answer" not in q and "explanation" not in q for q in d["questions"]) and
+                    all(q.get("question") and len(q.get("options", [])) == 4 for q in d["questions"])
+                ) else (False, f"Invalid quiz structure: questions={len(d.get('questions', []))}, total={d.get('total')}")
             )
         )
 
-        # ===== Quiz Submit - Empty Answers (should fail) =====
+        # ===== Quiz Submit - Validation =====
         print("\n📋 QUIZ SUBMIT - VALIDATION")
         self.test(
             "POST /api/quiz/submit with empty answers",
             "POST", "quiz/submit", 400,
-            data={"answers": []}
+            data={"answers": [], "email": "test@beaver.fr"}
+        )
+        self.test(
+            "POST /api/quiz/submit without email",
+            "POST", "quiz/submit", 422,
+            data={"answers": [{"question_id": "q1", "selected": "b"}]}
         )
 
         # ===== Quiz Submit - All Correct Answers =====
         print("\n📋 QUIZ SUBMIT - ALL CORRECT")
-        if success and quiz_data:
-            # Build all correct answers using new format (QBA, QB1, etc.)
-            # Based on quiz_data.py correct_answer values
-            correct_answers = [
-                {"question_id": "img1", "selected": "QBA"},
-                {"question_id": "img2", "selected": "QB2"},
-                {"question_id": "img3", "selected": "QS1"},
-                {"question_id": "img4", "selected": "QS3"},
-                {"question_id": "img5", "selected": "QF1B"},
-                {"question_id": "img6", "selected": "QF2"},
-                {"question_id": "img7", "selected": "QF4"},
-                {"question_id": "img8", "selected": "QP1"},
-                {"question_id": "img9", "selected": "QPA"},
-                {"question_id": "img10", "selected": "QB4"},
-            ]
-            
-            self.test(
-                "POST /api/quiz/submit with all correct answers (10/10)",
-                "POST", "quiz/submit", 200,
-                data={
-                    "answers": correct_answers,
-                    "email": "test@beaver.fr",
-                    "nom": "Test User",
-                    "entreprise": "Test Scierie"
-                },
-                validate_fn=lambda d: (
-                    (True, "") if (
-                        d.get("score") == 10 and
-                        d.get("total") == 10 and
-                        d.get("percentage") == 100.0 and
-                        "details" in d and len(d["details"]) == 10 and
-                        all(item.get("is_correct") for item in d["details"]) and
-                        # Verify details have selected_code and correct_code (formatted with spaces/dashes)
-                        all(item.get("selected_code") and item.get("correct_code") for item in d["details"]) and
-                        "id" in d and "completed_at" in d
-                    ) else (False, f"Invalid quiz result: score={d.get('score')}, total={d.get('total')}, percentage={d.get('percentage')}, details_count={len(d.get('details', []))}")
-                )
+        correct = {
+            "q1": "b", "q2": "b", "q3": "a", "q4": "a", "q5": "c", "q6": "d", "q7": "a", "q8": "d", "q9": "a", "q10": "d",
+            "q11": "d", "q12": "b", "q13": "d", "q14": "a", "q15": "a", "q16": "a", "q17": "a", "q18": "c", "q19": "c", "q20": "d",
+        }
+        self.test(
+            "POST /api/quiz/submit with all correct answers (20/20)",
+            "POST", "quiz/submit", 200,
+            data={
+                "answers": [{"question_id": k, "selected": v} for k, v in correct.items()],
+                "email": "test@beaver.fr",
+                "nom": "Test User",
+                "entreprise": "Test Scierie",
+            },
+            validate_fn=lambda d: (
+                (True, "") if (
+                    d.get("score") == 20 and d.get("total") == 20 and d.get("percentage") == 100.0 and
+                    len(d.get("details", [])) == 20 and
+                    all(item.get("is_correct") and item.get("correct_text") for item in d["details"]) and
+                    "id" in d and "completed_at" in d
+                ) else (False, f"Invalid quiz result: score={d.get('score')}, total={d.get('total')}, percentage={d.get('percentage')}")
             )
+        )
 
         # ===== Quiz Submit - Mixed Answers =====
         print("\n📋 QUIZ SUBMIT - MIXED ANSWERS")
-        if success and quiz_data:
-            mixed_answers = [
-                {"question_id": "img1", "selected": "QBA"},   # correct
-                {"question_id": "img2", "selected": "QB1"},   # wrong (correct is QB2)
-                {"question_id": "img3", "selected": "QS1"},   # correct
-                {"question_id": "img4", "selected": "QS1"},   # wrong (correct is QS3)
-                {"question_id": "img5", "selected": "QF1B"},  # correct
-                {"question_id": "img6", "selected": "QF1A"},  # wrong (correct is QF2)
-                {"question_id": "img7", "selected": "QF4"},   # correct
-                {"question_id": "img8", "selected": "QP1"},   # correct
-                {"question_id": "img9", "selected": "QPA"},   # correct
-                {"question_id": "img10", "selected": "QB3"},  # wrong (correct is QB4)
-            ]
-            
-            self.test(
-                "POST /api/quiz/submit with mixed answers (6/10)",
-                "POST", "quiz/submit", 200,
-                data={"answers": mixed_answers},
-                validate_fn=lambda d: (
-                    (True, "") if (
-                        d.get("score") == 6 and
-                        d.get("total") == 10 and
-                        d.get("percentage") == 60.0 and
-                        "details" in d and len(d["details"]) == 10
-                    ) else (False, f"Invalid quiz result: score={d.get('score')}, total={d.get('total')}, percentage={d.get('percentage')}")
-                )
+        mixed = dict(correct, q1="a", q2="a", q3="b", q4="b", q5="a")
+        self.test(
+            "POST /api/quiz/submit with mixed answers (15/20)",
+            "POST", "quiz/submit", 200,
+            data={"answers": [{"question_id": k, "selected": v} for k, v in mixed.items()], "email": "test@beaver.fr"},
+            validate_fn=lambda d: (
+                (True, "") if (
+                    d.get("score") == 15 and d.get("total") == 20 and d.get("percentage") == 75.0
+                ) else (False, f"Invalid quiz result: score={d.get('score')}, total={d.get('total')}, percentage={d.get('percentage')}")
             )
+        )
 
-        # ===== Quiz Results List =====
+        # ===== Quiz Results List (admin only) =====
         print("\n📋 QUIZ RESULTS")
         self.test(
-            "GET /api/quiz/results",
-            "GET", "quiz/results", 200,
-            validate_fn=lambda d: (
-                (True, "") if isinstance(d, list)
-                else (False, f"Expected list, got {type(d)}")
-            )
+            "GET /api/quiz/results without admin token",
+            "GET", "quiz/results", 401,
         )
 
         # ===== Contact - Valid =====
