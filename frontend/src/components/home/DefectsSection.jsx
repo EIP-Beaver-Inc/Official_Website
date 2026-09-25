@@ -222,7 +222,7 @@ export default function DefectsSection() {
                             <div>
                                 <div className="font-mono-ui text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground">En entraînement</div>
                                 <h3 className="mt-2 font-display font-semibold text-2xl sm:text-3xl tracking-[-0.035em] text-foreground">
-                                    {soon.length} défauts à débloquer, <span className="text-primary">avec vos données.</span>
+                                    {soon.length} singularités en développement, <span className="text-primary">avec votre aide ?</span>
                                 </h3>
                             </div>
                             <div className="flex items-center gap-4">
