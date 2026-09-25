@@ -1,180 +1,229 @@
-"""Quiz EN 975-1 — classification d'images.
-L'utilisateur regarde une image de bois et doit choisir la bonne classe parmi
-la liste exhaustive groupée par type de produit.
-NB : les classifications mockées ici sont indicatives à des fins de démo —
-le client pourra fournir un dataset annoté par expert pour la production.
-"""
-from typing import List, Dict, Tuple
+"""Quiz EN 975-1 : questions à choix multiples sur le classement d'aspect du bois."""
+from typing import Dict, List, Tuple
 
+QUIZ: Dict = {'title': 'Classement du bois : êtes-vous au niveau ?',
+ 'description': "20 questions pour comprendre la norme EN 975-1 et ce qu'un bon classement change pour une scierie.",
+ 'questions': [{'id': 'q1',
+                'question': 'Quels types de bois la norme EN 975-1 permet-elle de classer ?',
+                'options': [{'id': 'a', 'text': 'Tous les résineux'},
+                            {'id': 'b', 'text': 'Le chêne et le hêtre'},
+                            {'id': 'c', 'text': 'Le pin et le sapin'},
+                            {'id': 'd', 'text': 'Tous les bois tropicaux'}],
+                'answer': 'b',
+                'explanation': 'Cette norme concerne les planches de chêne et de hêtre, deux bois de grande valeur.'},
+               {'id': 'q2',
+                'question': 'Sur quoi se base cette norme pour classer une planche ?',
+                'options': [{'id': 'a', 'text': "Sur l'humidité du bois"},
+                            {'id': 'b', 'text': 'Sur ce qui se voit à la surface : nœuds, fissures, couleur…'},
+                            {'id': 'c', 'text': "Sur l'âge de l'arbre"},
+                            {'id': 'd', 'text': 'Sur la solidité de la planche'}],
+                'answer': 'b',
+                'explanation': "C'est un classement « d'aspect » : on juge la planche à l'œil, d'après ce qu'on voit. "
+                               "La solidité est traitée par d'autres normes."},
+               {'id': 'q3',
+                'question': "À quoi sert une norme de classement commune à toute l'Europe ?",
+                'options': [{'id': 'a',
+                             'text': "À ce que le vendeur et l'acheteur soient d'accord sur ce que veut dire « bonne "
+                                     'qualité »'},
+                            {'id': 'b', 'text': 'À fixer le prix du bois'},
+                            {'id': 'c', 'text': 'À remplacer les labels écologiques'},
+                            {'id': 'd', 'text': 'À limiter les exportations'}],
+                'answer': 'a',
+                'explanation': "Quand une scierie annonce une classe de qualité, son client sait exactement ce qu'il "
+                               'va recevoir, quel que soit le pays.'},
+               {'id': 'q4',
+                'question': 'La norme range les planches en classes de qualité. Laquelle est la meilleure ?',
+                'options': [{'id': 'a', 'text': 'La classe A'},
+                            {'id': 'b', 'text': 'La classe 2'},
+                            {'id': 'c', 'text': 'La classe 4'},
+                            {'id': 'd', 'text': 'La classe 1'}],
+                'answer': 'a',
+                'explanation': 'A est la qualité exceptionnelle. Viennent ensuite les choix numérotés 1, 2, 3…, du meilleur au '
+                               'moins bon. Leur nombre dépend du type de pièce : les pièces équarries, par exemple, '
+                               's’arrêtent au choix 2.'},
+               {'id': 'q5',
+                'question': "Dans une classe de qualité comme « QB1 », que désigne la lettre B ?",
+                'options': [{'id': 'a', 'text': 'Le niveau de qualité'},
+                            {'id': 'b', 'text': 'Du bois brut, non raboté'},
+                            {'id': 'c', 'text': 'Le type de pièce de bois (ici, des plots)'},
+                            {'id': 'd', 'text': 'La région de production'}],
+                'answer': 'c',
+                'explanation': "La première lettre désigne l'essence, la deuxième le type de pièce (B : plots, S : "
+                               'plateaux, F : avivés et frises, P : pièces équarries) et le dernier caractère le niveau '
+                               'de qualité.'},
+               {'id': 'q6',
+                'question': "Pourquoi l'apparence d'une planche compte-t-elle autant ?",
+                'options': [{'id': 'a', 'text': 'Parce que le bois est toujours peint'},
+                            {'id': 'b', 'text': "Parce que la loi l'impose pour tous les bois"},
+                            {'id': 'c', 'text': 'Parce que les planches servent surtout de bois de chauffage'},
+                            {'id': 'd',
+                             'text': 'Parce que le bois sert souvent à faire des parquets, des meubles ou des portes, '
+                                     'où il reste visible'}],
+                'answer': 'd',
+                'explanation': 'Pour ces usages, le bois reste visible : son apparence fait donc directement son prix.'},
+               {'id': 'q7',
+                'question': "Sur une planche, qu'appelle-t-on la « flache » ?",
+                'options': [{'id': 'a',
+                             'text': 'Un bord arrondi où il manque du bois, car la planche a été coupée trop près de '
+                                     "l'extérieur du tronc"},
+                            {'id': 'b', 'text': 'Un trou laissé par un nœud tombé'},
+                            {'id': 'c', 'text': 'Une fissure au bout de la planche'},
+                            {'id': 'd', 'text': "Une tache d'humidité"}],
+                'answer': 'a',
+                'explanation': 'Le tronc est rond : si on coupe trop près du bord, la planche garde un angle arrondi '
+                               "au lieu d'un angle droit. Plus il y en a, plus la planche perd de la valeur."},
+               {'id': 'q8',
+                'question': "Qu'est-ce que l'aubier ?",
+                'options': [{'id': 'a', 'text': 'Un vernis de finition'},
+                            {'id': 'b', 'text': "Le centre de l'arbre, la partie la plus dure"},
+                            {'id': 'c', 'text': 'Un champignon qui abîme le bois'},
+                            {'id': 'd', 'text': "La partie la plus jeune du bois, plus claire, juste sous l'écorce"}],
+                'answer': 'd',
+                'explanation': "L'aubier est plus clair et résiste moins bien dans le temps que le reste du bois. Il "
+                               'est limité dans les meilleures classes.'},
+               {'id': 'q9',
+                'question': 'Un nœud « sain » est bien attaché au bois, un nœud « mort » peut se détacher. Lequel fait '
+                            'le plus baisser la qualité ?',
+                'options': [{'id': 'a', 'text': 'Le nœud mort'},
+                            {'id': 'b', 'text': 'Aucun, les nœuds ne comptent pas'},
+                            {'id': 'c', 'text': 'Le nœud sain'},
+                            {'id': 'd', 'text': 'Les deux comptent exactement pareil'}],
+                'answer': 'a',
+                'explanation': 'Un nœud mort peut tomber et laisser un trou dans la planche. Il est donc beaucoup plus '
+                               'pénalisant.'},
+               {'id': 'q10',
+                'question': "Qu'appelle-t-on une « fente » dans le bois ?",
+                'options': [{'id': 'a', 'text': 'Une rainure faite exprès à la scie'},
+                            {'id': 'b', 'text': "Une trace d'insecte"},
+                            {'id': 'c', 'text': 'Un changement de couleur'},
+                            {'id': 'd',
+                             'text': 'Une fissure qui apparaît dans le bois, souvent au bout de la planche'}],
+                'answer': 'd',
+                'explanation': 'Les fentes apparaissent souvent quand le bois sèche. Elles réduisent la partie de la '
+                               "planche qu'on peut utiliser."},
+               {'id': 'q11',
+                'question': 'Lequel de ces défauts est interdit dans les meilleures classes ?',
+                'options': [{'id': 'a', 'text': 'Une planche un peu plus longue que prévu'},
+                            {'id': 'b', 'text': 'Un petit nœud bien attaché'},
+                            {'id': 'c', 'text': 'Une légère différence de couleur'},
+                            {'id': 'd', 'text': 'Du bois pourri'}],
+                'answer': 'd',
+                'explanation': "La pourriture est exclue des meilleures classes : elle abîme l'apparence et la "
+                               'solidité du bois.'},
+               {'id': 'q12',
+                'question': "Aujourd'hui, dans la plupart des scieries, comment les planches sont-elles classées ?",
+                'options': [{'id': 'a', 'text': 'Elles ne sont pas classées, tout est vendu en vrac'},
+                            {'id': 'b', 'text': 'Un opérateur regarde chaque planche et décide de sa classe'},
+                            {'id': 'c', 'text': 'Elles sont envoyées dans un laboratoire'},
+                            {'id': 'd', 'text': "C'est le client qui les classe à la livraison"}],
+                'answer': 'b',
+                'explanation': "Le classement se fait encore surtout à l'œil, grâce à l'expérience d'opérateurs "
+                               'formés.'},
+               {'id': 'q13',
+                'question': "Quel est le principal point faible d'un classement fait uniquement à l'œil ?",
+                'options': [{'id': 'a', 'text': 'On ne voit pas les nœuds'},
+                            {'id': 'b', 'text': 'Ça ne marche pas sur les bois clairs'},
+                            {'id': 'c', 'text': "C'est interdit par la norme"},
+                            {'id': 'd',
+                             'text': 'Le résultat change selon la personne, sa fatigue et la vitesse à laquelle '
+                                     'défilent les planches'}],
+                'answer': 'd',
+                'explanation': 'Deux opérateurs peuvent classer différemment la même planche, surtout en fin de '
+                               'journée ou quand il faut aller vite.'},
+               {'id': 'q14',
+                'question': "Une planche est classée meilleure qu'elle ne l'est vraiment, puis livrée au client. Que "
+                            'risque la scierie ?',
+                'options': [{'id': 'a', 'text': 'Une réclamation du client et une perte de confiance'},
+                            {'id': 'b', 'text': "Rien, elle gagne plus d'argent"},
+                            {'id': 'c', 'text': 'Rien, le client ne verra pas la différence'},
+                            {'id': 'd', 'text': 'Une amende automatique'}],
+                'answer': 'a',
+                'explanation': "Le client a payé pour une qualité précise. S'il reçoit moins bien, il réclame, demande "
+                               'un geste commercial, et la relation se dégrade.'},
+               {'id': 'q15',
+                'question': "À l'inverse, une planche est classée moins bonne qu'elle ne l'est vraiment. Quelle est la "
+                            'conséquence ?',
+                'options': [{'id': 'a', 'text': "Elle est vendue moins cher qu'elle ne vaut : c'est de l'argent perdu"},
+                            {'id': 'b', 'text': 'Elle doit être recoupée'},
+                            {'id': 'c', 'text': 'Le client la refuse'},
+                            {'id': 'd', 'text': "Aucune, c'est plus prudent"}],
+                'answer': 'a',
+                'explanation': "Personne ne s'en plaint, mais ça coûte : chaque planche sous-classée est vendue en "
+                               'dessous de sa vraie valeur.'},
+               {'id': 'q16',
+                'question': 'En plus de classer chaque planche, que fixe aussi la norme EN 975-1 ?',
+                'options': [{'id': 'a', 'text': 'Comment regrouper les planches en lots cohérents pour la vente'},
+                            {'id': 'b', 'text': 'Les prix de transport'},
+                            {'id': 'c', 'text': 'Les délais de livraison'},
+                            {'id': 'd', 'text': 'Les machines à utiliser pour scier'}],
+                'answer': 'a',
+                'explanation': 'La norme donne aussi les règles pour constituer les lots, afin que le client reçoive '
+                               'un ensemble homogène et conforme à sa commande.'},
+               {'id': 'q17',
+                'question': "Qu'est-ce qu'une caméra reliée à une intelligence artificielle peut repérer sur une "
+                            'planche ?',
+                'options': [{'id': 'a', 'text': 'Les défauts visibles : nœuds, fentes, bords arrondis, aubier…'},
+                            {'id': 'b', 'text': 'Le prix de vente conseillé'},
+                            {'id': 'c', 'text': "La région d'où vient le bois"},
+                            {'id': 'd', 'text': "L'humidité à l'intérieur de la planche"}],
+                'answer': 'a',
+                'explanation': 'La plupart des critères de la norme se voient à la surface de la planche : c’est ce qui '
+                               'rend un classement automatique possible.'},
+               {'id': 'q18',
+                'question': 'Combien de types de défauts Beaver repère-t-il automatiquement ?',
+                'options': [{'id': 'a', 'text': '3'},
+                            {'id': 'b', 'text': '5'},
+                            {'id': 'c', 'text': '9'},
+                            {'id': 'd', 'text': '15'}],
+                'answer': 'a',
+                'explanation': 'Beaver repère 3 types de défauts et indique la classe de qualité correspondante selon '
+                               'la norme EN 975-1.'},
+               {'id': 'q19',
+                'question': "Quel est le principal avantage d'un classement automatique pour une scierie ?",
+                'options': [{'id': 'a', 'text': 'Couper les troncs plus vite'},
+                            {'id': 'b', 'text': "Ne plus avoir besoin de personne dans l'atelier"},
+                            {'id': 'c',
+                             'text': "Un classement identique d'une planche à l'autre, même à grande vitesse"},
+                            {'id': 'd', 'text': 'Changer les règles de la norme'}],
+                'answer': 'c',
+                'explanation': "La machine applique toujours les mêmes critères, sans fatigue. L'opérateur peut se "
+                               'concentrer sur les planches difficiles à juger.'},
+               {'id': 'q20',
+                'question': "Un client n'est pas d'accord avec la qualité d'un lot livré. Qu'est-ce qui aide le plus "
+                            'la scierie à lui répondre ?',
+                'options': [{'id': 'a', 'text': 'Arrêter de travailler avec ce client'},
+                            {'id': 'b', 'text': 'Baisser le prix sans discuter'},
+                            {'id': 'c', 'text': 'Refaire tout le lot'},
+                            {'id': 'd', 'text': 'Pouvoir montrer une photo et la liste des défauts de chaque planche'}],
+                'answer': 'd',
+                'explanation': 'Avec une trace de chaque planche, la scierie peut justifier son classement : la '
+                               'discussion porte sur des faits, pas sur des impressions.'}]}
 
-ANSWER_GROUPS: List[Dict] = [
-    {
-        "label": "Plots reconstitués (B)",
-        "options": [
-            {"key": "QBA",  "code": "Q-B A",  "hint": "Qualité exceptionnelle"},
-            {"key": "QB1",  "code": "Q-B 1",  "hint": "Qualité supérieure"},
-            {"key": "QB2",  "code": "Q-B 2",  "hint": "Qualité courante"},
-            {"key": "QB3",  "code": "Q-B 3",  "hint": "Qualité industrielle"},
-            {"key": "QB4",  "code": "Q-B 4",  "hint": "Déclassée"},
-        ],
-    },
-    {
-        "label": "Plateaux sélectionnés (S)",
-        "options": [
-            {"key": "QSA",  "code": "Q-S A",  "hint": "Qualité exceptionnelle"},
-            {"key": "QS1",  "code": "Q-S 1",  "hint": "Qualité supérieure"},
-            {"key": "QS2",  "code": "Q-S 2",  "hint": "Qualité courante"},
-            {"key": "QS3",  "code": "Q-S 3",  "hint": "Qualité industrielle"},
-            {"key": "QS4",  "code": "Q-S 4",  "hint": "Déclassée"},
-        ],
-    },
-    {
-        "label": "Frises et avivés (F)",
-        "options": [
-            {"key": "QF1A", "code": "Q-F 1a", "hint": "Droit fil"},
-            {"key": "QF1B", "code": "Q-F 1b", "hint": "Supérieure"},
-            {"key": "QF2",  "code": "Q-F 2",  "hint": "Standard"},
-            {"key": "QF3",  "code": "Q-F 3",  "hint": "Courante"},
-            {"key": "QF4",  "code": "Q-F 4",  "hint": "Industrielle"},
-        ],
-    },
-    {
-        "label": "Pièces équarries (P)",
-        "options": [
-            {"key": "QPA",  "code": "Q-P A",  "hint": "Qualité exceptionnelle"},
-            {"key": "QP1",  "code": "Q-P 1",  "hint": "Qualité supérieure"},
-            {"key": "QP2",  "code": "Q-P 2",  "hint": "Qualité courante"},
-        ],
-    },
-]
-
-
-# Set des clés valides (pour la validation backend).
-VALID_KEYS = {opt["key"] for grp in ANSWER_GROUPS for opt in grp["options"]}
-
-
-# Quiz items : chaque item = une image à classer.
-QUIZ_QUESTIONS: List[Dict] = [
-    {
-        "id": "img1",
-        "image_url": "/assets/wood_1_Q-B_4.jpg",
-        "product_type": "Plot reconstitué",
-        "correct_answer": "QB4",
-        "explanation": "Plot présentant des défauts marqués : nœuds non adhérents, fissures et aubier traversant. Ces critères correspondent à Q-B 4 (qualité déclassée, sans limitation de singularités).",
-    },
-    {
-        "id": "img2",
-        "image_url": "/assets/wood_2_Q-F_1a.jpg",
-        "product_type": "Frise ou avivé",
-        "correct_answer": "QF1A",
-        "explanation": "Pièce à fil parfaitement droit, quasi exempte de singularités. La flèche de fil ≤ 3 % de la largeur et l'absence de nœuds débouchants caractérisent Q-F 1a (droit fil exceptionnel).",
-    },
-    {
-        "id": "img3",
-        "image_url": "/assets/wood_3_Q-S_2.jpg",
-        "product_type": "Plateau sélectionné",
-        "correct_answer": "QS2",
-        "explanation": "Plateau présentant des nœuds sains de diamètre modéré et un fil légèrement dévié. Ces caractéristiques correspondent à Q-S 2 (qualité courante, nœuds adhérents acceptés).",
-    },
-    {
-        "id": "img4",
-        "image_url": "/assets/wood_4_Q-B_2.jpg",
-        "product_type": "Plot reconstitué",
-        "correct_answer": "QB2",
-        "explanation": "Plot présentant plusieurs nœuds sains de petit à moyen diamètre, cœur brun visible mais < 25 % de la largeur. Caractéristiques de Q-B 2 (qualité courante).",
-    },
-    {
-        "id": "img5",
-        "image_url": "/assets/wood_5_Q-S_3.jpg",
-        "product_type": "Plateau sélectionné",
-        "correct_answer": "QS3",
-        "explanation": "Plateau marqué par plusieurs nœuds dont certains non adhérents et présence de cœur brun. Se classe Q-S 3 (qualité industrielle, lunure tolérée).",
-    },
-    {
-        "id": "img6",
-        "image_url": "/assets/wood_6_Q-F_3.png",
-        "product_type": "Frise ou avivé",
-        "correct_answer": "QF3",
-        "explanation": "Pièce avec nœuds sains marqués et légères irrégularités de fil. Ces critères correspondent à Q-F 3 (qualité courante, nœuds < 40 mm autorisés).",
-    },
-    {
-        "id": "img7",
-        "image_url": "/assets/wood_7_Q-B_1.jpg",
-        "product_type": "Plot reconstitué",
-        "correct_answer": "QB1",
-        "explanation": "Plot de belle facture : fil régulier, nœuds sains de petit diamètre peu fréquents, pas d'aubier ni de cœur brun apparent. Critères Q-B 1 (qualité supérieure).",
-    },
-    {
-        "id": "img8",
-        "image_url": "/assets/wood_8_Q-B_3.jpg",
-        "product_type": "Plot reconstitué",
-        "correct_answer": "QB3",
-        "explanation": "Plot avec nœuds sains plus nombreux, flache et légères fissures admises. Le profil de singularités correspond à Q-B 3 (qualité industrielle).",
-    },
-    {
-        "id": "img9",
-        "image_url": "/assets/wood_9_Q-S_1.jpg",
-        "product_type": "Plateau sélectionné",
-        "correct_answer": "QS1",
-        "explanation": "Plateau individuel propre, fil régulier, nœuds sains < 5 mm peu nombreux dans la zone de classement 0,2 m × 2 m. Critères Q-S 1 (qualité supérieure).",
-    },
-    {
-        "id": "img10",
-        "image_url": "/assets/wood_10-Q-F_2.jpg",
-        "product_type": "Frise ou avivé",
-        "correct_answer": "QF2",
-        "explanation": "Avivé standard présentant quelques nœuds sains < 25 mm, fil légèrement dévié. Caractéristique de Q-F 2 (qualité standard, 3 nœuds max par mètre linéaire).",
-    },
-]
+QUIZ_QUESTIONS: List[Dict] = QUIZ["questions"]
 
 
 def build_public_questions() -> List[Dict]:
-    """Return questions without correct_answer / explanation."""
-    return [
-        {
-            "id": q["id"],
-            "image_url": q["image_url"],
-            "product_type": q["product_type"],
-        }
-        for q in QUIZ_QUESTIONS
-    ]
+    return [{"id": q["id"], "question": q["question"], "options": q["options"]} for q in QUIZ_QUESTIONS]
 
 
-def get_answer_groups() -> List[Dict]:
-    return ANSWER_GROUPS
-
-
-def _code_for_key(key: str) -> str:
-    for grp in ANSWER_GROUPS:
-        for opt in grp["options"]:
-            if opt["key"] == key:
-                return opt["code"]
-    return key
+def _option_text(question: Dict, option_id: str) -> str:
+    return next((o["text"] for o in question["options"] if o["id"] == option_id), None)
 
 
 def evaluate_answers(answers: List[Dict]) -> Tuple[int, int, List[Dict]]:
-    """Score the answers and return (score, total, details)."""
     given = {a["question_id"]: a["selected"] for a in answers}
-
-    score = 0
-    total = len(QUIZ_QUESTIONS)
     details: List[Dict] = []
-
     for q in QUIZ_QUESTIONS:
-        sel = given.get(q["id"])
-        is_correct = sel == q["correct_answer"]
-        if is_correct:
-            score += 1
+        selected = given.get(q["id"])
         details.append({
             "question_id": q["id"],
-            "image_url": q["image_url"],
-            "product_type": q["product_type"],
-            "selected": sel,
-            "selected_code": _code_for_key(sel) if sel else None,
-            "correct": q["correct_answer"],
-            "correct_code": _code_for_key(q["correct_answer"]),
-            "is_correct": is_correct,
+            "question": q["question"],
+            "selected": selected,
+            "selected_text": _option_text(q, selected) if selected else None,
+            "correct": q["answer"],
+            "correct_text": _option_text(q, q["answer"]),
+            "is_correct": selected == q["answer"],
             "explanation": q["explanation"],
         })
-
-    return score, total, details
+    score = sum(d["is_correct"] for d in details)
+    return score, len(QUIZ_QUESTIONS), details

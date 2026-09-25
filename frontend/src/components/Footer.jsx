@@ -48,7 +48,7 @@ export default function Footer() {
                         <ul className="mt-3 space-y-2 text-sm text-[hsl(var(--muted-foreground))]">
                             <li>© {new Date().getFullYear()} BEAVER - Tous droits réservés.</li>
                             <li>Pipeline propriétaire · ROI · BOBER · DefectTracker</li>
-                            <li>Conforme NF EN 975-1 (feuillus / chêne)</li>
+                            <li>Conforme NF EN 975-1 (feuillus)</li>
                         </ul>
                     </div>
                 </div>
