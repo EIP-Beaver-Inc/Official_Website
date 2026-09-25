@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { useFadeUpObserver } from '@/hooks/useFadeUp';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import WoodRings from '@/components/WoodRings';
 import Home from '@/pages/Home';
 import Quiz from '@/pages/Quiz';
 import Contact from '@/pages/Contact';
@@ -20,8 +21,9 @@ function Layout({ children }) {
     const { pathname } = useLocation();
     return (
         <div className="App min-h-screen flex flex-col">
+            <WoodRings />
             <Header />
-            <main className={`flex-1 [overflow-x:clip] ${pathname === '/' ? '' : 'pt-20 sm:pt-28 pb-12'}`}>{children}</main>
+            <main className={`relative z-10 flex-1 [overflow-x:clip] ${pathname === '/' ? '' : 'pt-20 sm:pt-28 pb-12'}`}>{children}</main>
             <Footer />
             <Toaster
                 position="top-right"

@@ -6,7 +6,7 @@ const STATS = [
 
 export default function StatsBand() {
     return (
-        <section data-testid="home-stats" className="bg-card border-b border-black/5">
+        <section data-testid="home-stats" className="relative bg-card/70 backdrop-blur-md border-b border-black/5">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <dl className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-black/10">
                     {STATS.map((s) => (

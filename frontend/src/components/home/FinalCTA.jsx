@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Check, FileText } from 'lucide-react';
 import DemoDialog from '@/components/DemoDialog';
 import PillButton from '@/components/PillButton';
+import BrickPanel from '@/components/BrickPanel';
 
 const MARQUEE = ['Nœuds', 'Fissures', 'Temps réel', 'Embarqué', 'EN 975-1', 'Planche par planche'];
 const ONBOARDING = ['Audit ligne', 'Calibration ROI', 'Fine-tuning BOBER', 'Intégration backend & PyQt6'];
@@ -94,7 +95,7 @@ export default function FinalCTA() {
     const words = [...MARQUEE, ...MARQUEE];
 
     return (
-        <section data-testid="home-final-cta" className="bg-background pb-24 sm:pb-32 overflow-hidden">
+        <section data-testid="home-final-cta" className="pb-24 sm:pb-32 overflow-hidden">
             <div className="py-4 sm:py-5 mb-16 sm:mb-20 select-none border-y border-black/5" aria-hidden>
                 <div className="beaver-marquee flex w-max whitespace-nowrap">
                     {words.map((w, i) => (
@@ -112,18 +113,8 @@ export default function FinalCTA() {
             </div>
 
             <div className="px-4 sm:px-6 lg:px-8" data-animate="fade-up">
-                <div className="relative max-w-6xl mx-auto overflow-hidden rounded-[2rem] bg-primary text-primary-foreground px-6 py-14 sm:px-12 sm:py-16 lg:py-20">
-                    <div className="absolute inset-0 noise-overlay opacity-40 pointer-events-none" aria-hidden />
-                    <div
-                        className="absolute inset-0 pointer-events-none"
-                        aria-hidden
-                        style={{
-                            background:
-                                'radial-gradient(50% 70% at 85% 30%, hsl(32 90% 70% / 0.35) 0%, transparent 100%), radial-gradient(50% 60% at 10% 110%, hsl(14 70% 25% / 0.55) 0%, transparent 100%)',
-                        }}
-                    />
-
-                    <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+                <BrickPanel glow="85% 30%" className="max-w-6xl mx-auto px-6 py-14 sm:px-12 sm:py-16 lg:py-20">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
                         <div className="lg:col-span-7">
                             <div className="font-mono-ui text-xs uppercase tracking-[0.14em] text-primary-foreground/70">Passer à l'action</div>
                             <h2 className="mt-5 [text-wrap:balance] font-display font-semibold text-4xl sm:text-5xl lg:text-6xl leading-[1.02] tracking-[-0.04em]">
@@ -145,7 +136,7 @@ export default function FinalCTA() {
                             <SetupPanel />
                         </div>
                     </div>
-                </div>
+                </BrickPanel>
             </div>
         </section>
     );

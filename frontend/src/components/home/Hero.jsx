@@ -67,9 +67,9 @@ export default function Hero() {
                     data-animate="fade-up"
                     className="font-display font-bold uppercase text-[2.5rem] leading-[0.95] tracking-[-0.04em] sm:text-6xl lg:text-7xl xl:text-[5.5rem]"
                 >
-                    L'œil qui ne laisse
+                    Le tri, sans vous
                     <br />
-                    <span className="text-[hsl(var(--brick-light))]">rien</span> passer.
+                    faire de <span className="text-[hsl(var(--brick-light))]">nœuds.</span>
                 </h1>
                 <p
                     data-animate="fade-up"
