@@ -1,5 +1,7 @@
 export const LOGO_URL = '/assets/beaver-logo.svg';
 export const WORDMARK_URL = '/assets/beaver-name.png';
+export const MASCOT_INSPECTOR_URL = '/assets/mascot-inspecteur.webp';
+export const MASCOT_REPORTS_URL = '/assets/mascot-rapports.webp';
 
 export const HERO_VIDEOS = [
     { src: '/assets/VideoAnalise1.mp4', poster: '/assets/wood_7_Q-B_1.jpg' },

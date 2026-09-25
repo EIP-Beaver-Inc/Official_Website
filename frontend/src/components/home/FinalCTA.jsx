@@ -3,6 +3,7 @@ import { Check, FileText } from 'lucide-react';
 import DemoDialog from '@/components/DemoDialog';
 import PillButton from '@/components/PillButton';
 import BrickPanel from '@/components/BrickPanel';
+import { MASCOT_REPORTS_URL } from '@/lib/assets';
 
 const MARQUEE = ['Nœuds', 'Fissures', 'Temps réel', 'Embarqué', 'EN 975-1', 'Planche par planche'];
 const ONBOARDING = ['Audit ligne', 'Calibration ROI', 'Fine-tuning BOBER', 'Intégration backend & PyQt6'];
@@ -96,7 +97,7 @@ export default function FinalCTA() {
 
     return (
         <section data-testid="home-final-cta" className="pb-24 sm:pb-32 overflow-hidden">
-            <div className="py-4 sm:py-5 mb-16 sm:mb-20 select-none border-y border-black/5" aria-hidden>
+            <div className="py-4 sm:py-5 mb-32 sm:mb-40 select-none border-y border-black/5" aria-hidden>
                 <div className="beaver-marquee flex w-max whitespace-nowrap">
                     {words.map((w, i) => (
                         <span
@@ -112,8 +113,14 @@ export default function FinalCTA() {
                 </div>
             </div>
 
-            <div className="px-4 sm:px-6 lg:px-8" data-animate="fade-up">
-                <BrickPanel glow="85% 30%" className="max-w-6xl mx-auto px-6 py-14 sm:px-12 sm:py-16 lg:py-20">
+            <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" data-animate="fade-up">
+                <img
+                    src={MASCOT_REPORTS_URL}
+                    alt="La mascotte Beaver rédige des rapports sur sa tablette"
+                    loading="lazy"
+                    className="absolute z-10 right-6 lg:right-[8%] -top-[6.8125rem] sm:-top-[8.8125rem] lg:-top-[11.8125rem] w-36 sm:w-48 lg:w-64 drop-shadow-[0_20px_30px_rgba(60,35,20,0.3)]"
+                />
+                <BrickPanel glow="85% 30%" className="px-6 py-14 sm:px-12 sm:py-16 lg:py-20">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
                         <div className="lg:col-span-7">
                             <div className="font-mono-ui text-xs uppercase tracking-[0.14em] text-primary-foreground/70">Passer à l'action</div>

@@ -5,6 +5,7 @@ import PillButton from '@/components/PillButton';
 import { fetchDefects } from '@/lib/api';
 import { DEFECT_TYPES, PLANK_IMAGE, PLANK_SIZE } from '@/lib/plank';
 import LiveDot from '@/components/LiveDot';
+import { MASCOT_INSPECTOR_URL } from '@/lib/assets';
 
 const SPECS = ['YOLOv8 fine-tuné', 'Images recadrées post-ROI', '40 frames minimum'];
 
@@ -173,7 +174,13 @@ export default function DefectsSection() {
             />
 
             <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <header className="text-center" data-animate="fade-up">
+                <header className="relative text-center" data-animate="fade-up">
+                    <img
+                        src={MASCOT_INSPECTOR_URL}
+                        alt="La mascotte Beaver inspecte une planche à la loupe"
+                        loading="lazy"
+                        className="mx-auto mb-6 w-36 sm:w-44 lg:absolute lg:-left-4 lg:-top-8 lg:mb-0 lg:w-40 xl:w-48 drop-shadow-[0_20px_30px_rgba(60,35,20,0.25)]"
+                    />
                     <Kicker className="justify-center">Détection</Kicker>
                     <h2 className="mt-5 font-display font-semibold text-5xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-[-0.045em] text-foreground">
                         Nœuds et fissures.
