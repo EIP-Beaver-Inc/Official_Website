@@ -10,8 +10,6 @@ DEFECT_CLASSES: List[Dict] = [
     {"key": "moelle",             "name": "Moelle",             "impact": "Modéré",      "description": "Cœur de l'arbre. Tissu spongieux instable, fragilise la stabilité dimensionnelle.", "status": "soon"},
     {"key": "resine",             "name": "Résine",             "impact": "Esthétique",   "description": "Poche ou suintement de résine. Affecte l'aspect et la finition de surface.", "status": "soon"},
     {"key": "quartzite",          "name": "Quartzite",          "impact": "Critique",     "description": "Inclusion minérale dans le bois. Casse instantanément les outils de coupe.", "status": "soon"},
-    {"key": "noeud_manquant",     "name": "Nœud manquant",     "impact": "Modéré",      "description": "Cavité laissée par la chute d'un nœud. Trou traversant ou borgne.", "status": "soon"},
-    {"key": "noeud_avec_fissure", "name": "Nœud avec fissure", "impact": "Critique",     "description": "Nœud présentant une fente. Cumul de deux défauts : déclassant en classes inférieures.", "status": "soon"},
 ]
 
 

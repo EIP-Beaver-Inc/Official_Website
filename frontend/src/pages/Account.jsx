@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { fetchBetaMe, fetchTutorials, listMyTickets, submitFeedback } from '@/lib/api';
 import PageHero from '@/components/PageHero';
+import LiveDot from '@/components/LiveDot';
+import BrickPanel from '@/components/BrickPanel';
 
 const FEEDBACK_CATEGORIES = ['Interface', 'Performance', 'Précision IA', 'Documentation', 'Autre'];
 
@@ -255,10 +257,7 @@ export default function Account() {
             >
                 <div className="mt-5 flex items-center gap-3 flex-wrap">
                     <span className="inline-flex items-center gap-2 rounded-full bg-[hsl(120_30%_40%/0.1)] text-[hsl(120_30%_28%)] px-3 py-1.5 font-mono-ui text-[0.6875rem] uppercase tracking-[0.12em]">
-                        <span className="relative flex h-1.5 w-1.5">
-                            <span className="absolute inline-flex h-full w-full rounded-full bg-[hsl(120_35%_40%)] beaver-pulse-ring" />
-                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[hsl(120_35%_40%)]" />
-                        </span>
+                        <LiveDot color="bg-[hsl(120_35%_40%)]" />
                         Accès actif
                     </span>
                     {user?.expires_at && <span className="text-sm text-muted-foreground">Expire le {formatDate(user.expires_at)}</span>}
@@ -273,14 +272,8 @@ export default function Account() {
             </PageHero>
 
             {/* Download */}
-            <div className="relative overflow-hidden rounded-[2rem] bg-primary text-primary-foreground p-6 sm:p-10">
-                <div className="absolute inset-0 noise-overlay opacity-40 pointer-events-none" aria-hidden />
-                <div
-                    className="absolute inset-0 pointer-events-none"
-                    aria-hidden
-                    style={{ background: 'radial-gradient(50% 80% at 90% 10%, hsl(32 90% 70% / 0.35) 0%, transparent 100%)' }}
-                />
-                <div className="relative flex flex-col sm:flex-row sm:items-end gap-6">
+            <BrickPanel glow="90% 10%" className="p-6 sm:p-10">
+                <div className="flex flex-col sm:flex-row sm:items-end gap-6">
                     <div className="flex-1">
                         <div className="font-mono-ui text-[0.6875rem] uppercase tracking-[0.14em] text-primary-foreground/70">Téléchargement</div>
                         <div className="mt-4 font-display font-semibold text-4xl sm:text-5xl tracking-[-0.04em]">Beaver {APP_VERSION}</div>
@@ -303,7 +296,7 @@ export default function Account() {
                         </a>
                     </div>
                 </div>
-            </div>
+            </BrickPanel>
 
             {/* Tutorials */}
             <div>

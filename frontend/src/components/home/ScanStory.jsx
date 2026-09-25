@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import Kicker from '@/components/Kicker';
 import { DEFECT_TYPES as TYPES, PLANK_DEFECTS as DEFECTS, PLANK_IMAGE, PLANK_RATIO } from '@/lib/plank';
+import LiveDot from '@/components/LiveDot';
 
 
 const OVERSIZE = 2;
@@ -136,7 +137,7 @@ export default function ScanStory() {
     };
 
     return (
-        <section ref={sectionRef} data-testid="home-scan-story" className="relative bg-background h-[650vh] [overflow-x:clip]">
+        <section ref={sectionRef} data-testid="home-scan-story" className="relative h-[650vh] [overflow-x:clip]">
             <div className="sticky top-0 h-[100svh]">
                 <div
                     className="absolute inset-0 pointer-events-none"
@@ -252,10 +253,7 @@ export default function ScanStory() {
                             ref={trackRef}
                             className="absolute top-2 right-0 opacity-0 transition-opacity duration-300 rounded-full bg-card/90 backdrop-blur border border-black/5 px-3 py-1.5 font-mono-ui text-[0.6875rem] uppercase tracking-[0.12em] text-foreground flex items-center gap-2"
                         >
-                            <span className="relative flex h-1.5 w-1.5">
-                                <span className="absolute inline-flex h-full w-full rounded-full bg-primary beaver-pulse-ring" />
-                                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-                            </span>
+                            <LiveDot />
                             Suivi · frame <span ref={frameRef}>01/40</span>
                         </div>
 

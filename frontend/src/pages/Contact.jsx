@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { submitContact } from '@/lib/api';
 import PageHero from '@/components/PageHero';
+import BrickPanel from '@/components/BrickPanel';
 
 export default function Contact() {
     const [form, setForm] = useState({ nom: '', entreprise: '', email: '', telephone: '', message: '' });
@@ -110,14 +111,8 @@ export default function Contact() {
                 </div>
 
                 <aside className="lg:col-span-5 flex flex-col gap-6" data-animate="fade-up">
-                    <div className="relative overflow-hidden rounded-[2rem] bg-primary text-primary-foreground p-6 sm:p-8">
-                        <div className="absolute inset-0 noise-overlay opacity-40 pointer-events-none" aria-hidden />
-                        <div
-                            className="absolute inset-0 pointer-events-none"
-                            aria-hidden
-                            style={{ background: 'radial-gradient(60% 70% at 90% 0%, hsl(32 90% 70% / 0.35) 0%, transparent 100%)' }}
-                        />
-                        <div className="relative">
+                    <BrickPanel className="p-6 sm:p-8">
+                        <div>
                             <div className="font-mono-ui text-[11px] uppercase tracking-[0.14em] text-primary-foreground/70">Coordonnées</div>
                             <ul className="mt-6 space-y-5">
                                 {[
@@ -137,7 +132,7 @@ export default function Contact() {
                                 ))}
                             </ul>
                         </div>
-                    </div>
+                    </BrickPanel>
 
                     <div className="rounded-[2rem] border border-black/5 bg-card p-6 sm:p-8">
                         <div className="font-mono-ui text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Notre promesse</div>

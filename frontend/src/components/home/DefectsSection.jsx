@@ -3,7 +3,8 @@ import { Lock } from 'lucide-react';
 import Kicker from '@/components/Kicker';
 import PillButton from '@/components/PillButton';
 import { fetchDefects } from '@/lib/api';
-import { DEFECT_TYPES, PLANK_DEFECTS, PLANK_IMAGE, PLANK_SIZE } from '@/lib/plank';
+import { DEFECT_TYPES, PLANK_IMAGE, PLANK_SIZE } from '@/lib/plank';
+import LiveDot from '@/components/LiveDot';
 
 const SPECS = ['YOLOv8 fine-tuné', 'Images recadrées post-ROI', '40 frames minimum'];
 
@@ -17,13 +18,10 @@ const IMPACTS = {
 const isLive = (d) => (d.status ? d.status === 'live' : /^(noeud_vif|noeud_mort|fissure)$/.test(d.key));
 
 const PLANK_TYPE = { noeud_vif: 'vif', noeud_mort: 'mort', fissure: 'fissure' };
-const SPECIMEN_X = { fissure: 73.1 };
-const specimen = (type) => {
-    const all = PLANK_DEFECTS.filter((d) => d.type === type);
-    return (
-        all.find((d) => d.x === SPECIMEN_X[type]) ||
-        all.reduce((best, d) => (!best || d.w * d.h > best.w * best.h ? d : best), null)
-    );
+const SPECIMENS = {
+    noeud_vif: { src: '/assets/defect-noeud-vif.jpg', box: { left: '36%', top: '21%', width: '25%', height: '62%' } },
+    noeud_mort: { src: '/assets/defect-noeud-mort.jpg', box: { left: '33%', top: '27%', width: '38%', height: '56%' } },
+    fissure: { src: '/assets/defect-fissure.jpg', box: { left: '3%', top: '59%', width: '94%', height: '15%' } },
 };
 
 const FAN = [
@@ -61,8 +59,7 @@ function crop(spot, aspect) {
 
 function SpecimenCard({ defect, index, total, fan, state, onEnter, onLeave }) {
     const type = PLANK_TYPE[defect.key];
-    const spot = type && specimen(type);
-    const view = spot && crop(spot, 3 / 4);
+    const specimen = SPECIMENS[defect.key];
 
     const [tilt, setTilt] = useState({ x: 0, y: 0, mx: 50 });
     const onMove = (e) => {
@@ -93,9 +90,9 @@ function SpecimenCard({ defect, index, total, fan, state, onEnter, onLeave }) {
             style={{ '--t': transform }}
         >
             <div className="relative aspect-[4/3] overflow-hidden rounded-[1.25rem] bg-[hsl(25_18%_11%)]">
-                {view && <div className="absolute inset-0 bg-no-repeat" style={view.image} />}
-                {view && (
-                    <div className="absolute rounded-md border-2" style={{ ...view.box, borderColor: DEFECT_TYPES[type].color }}>
+                {specimen && <img src={specimen.src} alt={defect.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />}
+                {specimen && type && (
+                    <div className="absolute rounded-md border-2" style={{ ...specimen.box, borderColor: DEFECT_TYPES[type].color }}>
                         <span
                             className="absolute bottom-full left-0 mb-1 whitespace-nowrap rounded px-1.5 py-0.5 font-mono-ui text-[0.625rem] leading-none text-white"
                             style={{ background: DEFECT_TYPES[type].color }}
@@ -126,10 +123,7 @@ function SpecimenCard({ defect, index, total, fan, state, onEnter, onLeave }) {
                 <h3 className="mt-3 font-display font-semibold text-3xl tracking-[-0.04em] text-foreground">{defect.name}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-3">{defect.description}</p>
                 <div className="mt-5 flex items-center gap-2 font-mono-ui text-[0.625rem] uppercase tracking-[0.14em] text-[hsl(120_30%_32%)]">
-                    <span className="relative flex h-1.5 w-1.5">
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-[hsl(120_35%_40%)] beaver-pulse-ring" />
-                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[hsl(120_35%_40%)]" />
-                    </span>
+                    <LiveDot color="bg-[hsl(120_35%_40%)]" />
                     Détecté en production
                 </div>
             </div>
@@ -138,10 +132,10 @@ function SpecimenCard({ defect, index, total, fan, state, onEnter, onLeave }) {
 }
 
 function LockedTile({ defect, index }) {
-    const view = crop({ x: 12 + index * 14, y: 30, w: 4, h: 30 }, 1);
+    const view = crop({ x: 12 + index * 14, y: 30, w: 4, h: 30 }, 2 / 3);
     return (
         <li className="group relative overflow-hidden rounded-2xl bg-card border border-black/5">
-            <div className="relative aspect-square overflow-hidden">
+            <div className="relative aspect-[3/2] overflow-hidden">
                 <div className="absolute -inset-3 bg-no-repeat blur-md scale-110 opacity-70" style={view.image} />
                 <div className="absolute inset-0 bg-[hsl(var(--card)/0.35)]" />
                 <span className="absolute inset-0 m-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-card/90 text-muted-foreground shadow-sm transition-transform duration-300 group-hover:scale-110">
@@ -171,7 +165,7 @@ export default function DefectsSection() {
     const cardState = (i) => (hovered === null ? 'idle' : i === hovered ? 'hover' : i < hovered ? 'left' : 'right');
 
     return (
-        <section data-testid="home-defects" className="relative bg-background py-24 sm:py-32 overflow-hidden">
+        <section data-testid="home-defects" className="relative py-24 sm:py-32 overflow-hidden">
             <div
                 className="absolute inset-x-0 top-40 h-[32.5rem] pointer-events-none"
                 aria-hidden
@@ -241,7 +235,7 @@ export default function DefectsSection() {
                                 </PillButton>
                             </div>
                         </div>
-                        <ul className="mt-6 grid grid-cols-3 sm:grid-cols-6 gap-3">
+                        <ul className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
                             {soon.map((d, i) => (
                                 <LockedTile key={d.key} defect={d} index={i} />
                             ))}
