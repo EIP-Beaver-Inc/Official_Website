@@ -31,10 +31,24 @@ services:
       args:
         - VITE_BACKEND_URL=
     restart: unless-stopped
-    ports:
-      - "80:80"
     depends_on:
       - backend
 
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+
 volumes:
   mongo_data:
+  caddy_data:
+  caddy_config:

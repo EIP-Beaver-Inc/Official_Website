@@ -1,0 +1,4 @@
+beaver-website.fr, www.beaver-website.fr {
+    encode gzip
+    reverse_proxy frontend:80
+}
