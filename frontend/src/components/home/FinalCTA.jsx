@@ -5,7 +5,7 @@ import PillButton from '@/components/PillButton';
 import BrickPanel from '@/components/BrickPanel';
 import { MASCOT_REPORTS_URL } from '@/lib/assets';
 
-const MARQUEE = ['Nœuds', 'Fissures', 'Temps réel', 'Embarqué', 'EN 975-1', 'Planche par planche'];
+const MARQUEE = ['Nœuds', 'Fissures', 'Temps réel', 'Embarqué', 'EN 975-1', 'Du bois dont on fait les bons tris'];
 const ONBOARDING = ['Audit ligne', 'Calibration ROI', 'Fine-tuning BOBER', 'Intégration backend & PyQt6'];
 const STEP_MS = 700;
 
@@ -127,7 +127,7 @@ export default function FinalCTA() {
                             <h2 className="mt-5 [text-wrap:balance] font-display font-semibold text-4xl sm:text-5xl lg:text-6xl leading-[1.02] tracking-[-0.04em]">
                                 Branchez Beaver sur votre ligne de sciage en moins de 7 jours.
                             </h2>
-                            <p className="mt-6 max-w-md text-base text-primary-foreground/80">Vos rapports planche par planche, dès la mise en route.</p>
+                            <p className="mt-6 max-w-md text-base text-primary-foreground/80">Vos rapports planche par planche. Du massif, pas du contreplaqué.</p>
                             <div className="mt-10 flex flex-wrap gap-3">
                                 <DemoDialog
                                     triggerClassName="inline-flex items-center justify-center rounded-full bg-[hsl(var(--primary-foreground))] text-primary hover:bg-white hover:scale-[1.03] px-6 sm:px-7 h-12 text-sm font-medium transition-[background-color,transform]"

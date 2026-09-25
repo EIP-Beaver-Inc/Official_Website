@@ -10,7 +10,7 @@ export default function StatsBand() {
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <dl className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-black/10">
                     {STATS.map((s) => (
-                        <div key={s.label} data-animate="fade-up" className="py-8 sm:py-10 sm:px-8 sm:first:pl-0">
+                        <div key={s.label} data-animate="fade-up" className="py-8 sm:py-10 sm:px-8 text-center">
                             <dt className="font-mono-ui text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground">{s.label}</dt>
                             <dd className="mt-3 font-display font-semibold tracking-[-0.04em] text-4xl sm:text-5xl text-foreground">
                                 {s.value}

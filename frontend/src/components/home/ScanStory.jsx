@@ -32,15 +32,15 @@ const STEPS = [
         text: null,
     },
     {
-        title: 'Au-delà du contrôle manuel',
+        title: 'Plus besoin de toucher du bois.',
         text: 'Pensé pour répondre aux limites du contrôle qualité manuel, Beaver combine caméras et modèles de vision par ordinateur entraînés spécifiquement pour l’analyse du bois.',
     },
     {
-        title: 'Temps réel, embarqué',
+        title: 'Temps réel : pas le temps de prendre racine.',
         text: 'Le tout est exécuté en temps réel sur machine en scierie et directement connecté à un hardware embarqué.',
     },
     {
-        title: 'Dès la ligne de production',
+        title: 'Rien ne se perd, tout se trie.',
         text: 'Le système identifie les défauts dès la ligne de production, réduit les pertes matière et fiabilise le tri, au service des scieries et de leurs équipes.',
     },
 ];
