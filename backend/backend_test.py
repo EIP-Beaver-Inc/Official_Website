@@ -240,12 +240,8 @@ class BeaverAPITester:
         # ===== Contact List =====
         print("\n📋 CONTACT LIST")
         self.test(
-            "GET /api/contact",
-            "GET", "contact", 200,
-            validate_fn=lambda d: (
-                (True, "") if isinstance(d, list)
-                else (False, f"Expected list, got {type(d)}")
-            )
+            "GET /api/contact without admin token",
+            "GET", "contact", 401,
         )
 
         # ===== Demo Request - Valid =====
@@ -285,12 +281,8 @@ class BeaverAPITester:
         # ===== Demo Request List =====
         print("\n📋 DEMO REQUEST LIST")
         self.test(
-            "GET /api/demo-requests",
-            "GET", "demo-requests", 200,
-            validate_fn=lambda d: (
-                (True, "") if isinstance(d, list)
-                else (False, f"Expected list, got {type(d)}")
-            )
+            "GET /api/demo-requests without admin token",
+            "GET", "demo-requests", 401,
         )
 
         # ===== Print Summary =====
