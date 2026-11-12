@@ -110,16 +110,36 @@ def _build_message(
     return msg
 
 
+def _login(smtp: smtplib.SMTP, user: str, password: str) -> None:
+    """Authenticate without an SMTP "initial response".
+
+    smtplib's default login() sends `AUTH PLAIN <credentials>` in a single
+    command; Gmail answers that by silently dropping the connection
+    (SMTPServerDisconnected). Sending `AUTH LOGIN` / `AUTH PLAIN` first and the
+    credentials after the 334 challenge works with Gmail and any other server.
+    """
+    smtp.ehlo_or_helo_if_needed()
+    if not smtp.has_extn("auth"):
+        raise smtplib.SMTPNotSupportedError("SMTP AUTH extension not supported by server.")
+    advertised = smtp.esmtp_features["auth"].upper().split()
+    smtp.user, smtp.password = user, password
+    for mechanism in ("LOGIN", "PLAIN"):
+        if mechanism in advertised:
+            smtp.auth(mechanism, getattr(smtp, "auth_" + mechanism.lower()), initial_response_ok=False)
+            return
+    smtp.login(user, password)  # fall back to smtplib's own choice (e.g. CRAM-MD5)
+
+
 def _send_sync(cfg: SMTPConfig, msg: EmailMessage) -> None:
     context = ssl.create_default_context()
     if cfg.port == 465:
         with smtplib.SMTP_SSL(cfg.host, cfg.port, context=context, timeout=20) as smtp:
-            smtp.login(cfg.user, cfg.password)
+            _login(smtp, cfg.user, cfg.password)
             smtp.send_message(msg)
     else:
         with smtplib.SMTP(cfg.host, cfg.port, timeout=20) as smtp:
             smtp.starttls(context=context)
-            smtp.login(cfg.user, cfg.password)
+            _login(smtp, cfg.user, cfg.password)
             smtp.send_message(msg)
 
 
