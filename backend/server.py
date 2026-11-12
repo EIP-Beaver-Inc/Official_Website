@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header, BackgroundTasks, Request
 from fastapi.security import APIKeyHeader
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
@@ -13,10 +13,13 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
 import uuid
+import time
+from collections import defaultdict, deque
 from datetime import datetime, timezone
 
 from quiz_data import QUIZ, QUIZ_QUESTIONS, build_public_questions, evaluate_answers
 from defects_data import DEFECT_CLASSES, PIPELINE_STEPS, SCORING_CLASSES
+from mailer import notify_contact, notify_demo_request
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -61,6 +64,54 @@ async def require_admin(token: str = Depends(_admin_key_header)):
     expected = os.environ.get("ADMIN_TOKEN", "")
     if not expected or token != expected:
         raise HTTPException(status_code=401, detail="Accès non autorisé.")
+
+
+# ====================== Rate limiting (public forms) ======================
+# In-memory sliding window, per client IP. Good enough for a single backend
+# process; each accepted submission sends an email, so this caps inbox spam.
+FORM_RATE_LIMIT = int(os.environ.get("FORM_RATE_LIMIT", "5"))
+FORM_RATE_WINDOW = int(os.environ.get("FORM_RATE_WINDOW_SECONDS", "600"))
+_form_hits: dict = defaultdict(deque)
+
+
+def _client_ip(request: Request) -> str:
+    # Caddy -> nginx -> backend: Caddy overwrites X-Forwarded-For with the real
+    # client IP (untrusted incoming values are dropped), nginx appends its peer.
+    fwd = request.headers.get("x-forwarded-for")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+async def form_rate_limit(request: Request):
+    if FORM_RATE_LIMIT <= 0:
+        return
+    now = time.monotonic()
+    key = (request.url.path, _client_ip(request))
+    hits = _form_hits[key]
+    while hits and now - hits[0] > FORM_RATE_WINDOW:
+        hits.popleft()
+    if len(hits) >= FORM_RATE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail="Trop de demandes envoyées. Merci de réessayer plus tard ou d'écrire à beaver.eip@gmail.com.",
+        )
+    hits.append(now)
+    if len(_form_hits) > 10000:  # crude memory bound
+        for k in [k for k, v in _form_hits.items() if not v or now - v[-1] > FORM_RATE_WINDOW]:
+            _form_hits.pop(k, None)
+
+
+# ====================== Email notifications ======================
+async def _notify_and_record(collection: str, doc: dict, notifier) -> None:
+    status = await notifier(doc)
+    try:
+        await db[collection].update_one(
+            {"id": doc["id"]},
+            {"$set": {"email_status": status, "email_status_at": _now_iso()}},
+        )
+    except Exception:  # pragma: no cover
+        logging.getLogger(__name__).exception("Could not record email status for %s", doc["id"])
 
 
 # ====================== Client auth dependency ======================
@@ -327,14 +378,16 @@ async def list_quiz_results(limit: int = 100):
 
 
 # ---- Demo requests ----
-@api_router.post("/demo-requests", response_model=DemoRequest)
-async def create_demo_request(payload: DemoRequestCreate):
+@api_router.post("/demo-requests", response_model=DemoRequest, dependencies=[Depends(form_rate_limit)])
+async def create_demo_request(payload: DemoRequestCreate, background_tasks: BackgroundTasks):
     obj = DemoRequest(**payload.model_dump())
-    await db.demo_requests.insert_one(obj.model_dump())
+    doc = obj.model_dump()
+    await db.demo_requests.insert_one({**doc, "email_status": "pending"})
+    background_tasks.add_task(_notify_and_record, "demo_requests", doc, notify_demo_request)
     return obj
 
 
-@api_router.get("/demo-requests", response_model=List[DemoRequest])
+@api_router.get("/demo-requests", response_model=List[DemoRequest], dependencies=[Depends(require_admin)])
 async def list_demo_requests(limit: int = 200):
     cursor = db.demo_requests.find({}, {"_id": 0}).sort("created_at", -1).limit(limit)
     items = await cursor.to_list(length=limit)
@@ -342,14 +395,16 @@ async def list_demo_requests(limit: int = 200):
 
 
 # ---- Contacts ----
-@api_router.post("/contact", response_model=Contact)
-async def create_contact(payload: ContactCreate):
+@api_router.post("/contact", response_model=Contact, dependencies=[Depends(form_rate_limit)])
+async def create_contact(payload: ContactCreate, background_tasks: BackgroundTasks):
     obj = Contact(**payload.model_dump())
-    await db.contacts.insert_one(obj.model_dump())
+    doc = obj.model_dump()
+    await db.contacts.insert_one({**doc, "email_status": "pending"})
+    background_tasks.add_task(_notify_and_record, "contacts", doc, notify_contact)
     return obj
 
 
-@api_router.get("/contact", response_model=List[Contact])
+@api_router.get("/contact", response_model=List[Contact], dependencies=[Depends(require_admin)])
 async def list_contacts(limit: int = 200):
     cursor = db.contacts.find({}, {"_id": 0}).sort("created_at", -1).limit(limit)
     items = await cursor.to_list(length=limit)
