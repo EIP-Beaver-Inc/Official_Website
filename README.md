@@ -18,6 +18,37 @@ Pour arrêter :
 docker compose down
 ```
 
+## Envoi des emails (formulaires Contact & Devis)
+
+Chaque message du formulaire **Contact** et chaque **demande de devis** est enregistré
+en base puis envoyé par email à `beaver.eip@gmail.com` (en-tête `Reply-To` = l'email du
+visiteur : il suffit de cliquer sur « Répondre » dans Gmail).
+
+L'envoi passe par le SMTP de Gmail avec un **mot de passe d'application** :
+
+1. Sur le compte `beaver.eip@gmail.com`, activer la **validation en 2 étapes**
+   (https://myaccount.google.com/security).
+2. Créer un mot de passe d'application : https://myaccount.google.com/apppasswords
+   (nom : « Site Beaver »). Google affiche un code de 16 caractères.
+3. Ajouter dans le `.env` à la racine (ou `backend/.env` en local) :
+
+```env
+SMTP_USER=beaver.eip@gmail.com
+SMTP_PASSWORD=xxxx xxxx xxxx xxxx
+# Optionnel :
+# NOTIFY_EMAIL_TO=beaver.eip@gmail.com,autre@exemple.fr
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# FORM_RATE_LIMIT=5              # envois max par IP…
+# FORM_RATE_WINDOW_SECONDS=600   # …sur cette fenêtre
+```
+
+4. `docker compose up -d --build backend`
+
+Sans `SMTP_USER`/`SMTP_PASSWORD`, les formulaires fonctionnent toujours (stockage en base)
+mais aucun email n'est envoyé (un avertissement est loggé). Le statut d'envoi est stocké
+dans le champ `email_status` (`sent` / `failed` / `disabled`) de chaque document.
+
 ## Développement local (sans Docker)
 
 ### Backend
