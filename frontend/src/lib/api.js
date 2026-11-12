@@ -9,11 +9,6 @@ export const api = axios.create({
     timeout: 20000,
 });
 
-export async function fetchPipeline() {
-    const r = await api.get('/pipeline');
-    return r.data;
-}
-
 export async function fetchDefects() {
     const r = await api.get('/defects');
     return r.data;

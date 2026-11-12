@@ -306,8 +306,8 @@ function StatCard({ label, value, sub, color = 'text-[hsl(var(--primary))]' }) {
     return (
         <div className="rounded-xl border border-black/5 bg-[hsl(var(--card))] p-4 sm:p-5">
             <div className="label-caps mb-2">{label}</div>
-            <div className={`font-heading italic text-4xl leading-none ${color}`}>
-                {value ?? <span className="text-[hsl(var(--muted-foreground))] text-2xl not-italic font-normal">—</span>}
+            <div className={`font-heading text-4xl leading-none ${color}`}>
+                {value ?? <span className="text-[hsl(var(--muted-foreground))] text-2xl not-italic font-normal">-</span>}
             </div>
             {sub && <div className="mt-1.5 text-xs text-[hsl(var(--muted-foreground))]">{sub}</div>}
         </div>
@@ -517,7 +517,7 @@ export default function Admin() {
     };
 
     const formatDate = (iso) => {
-        if (!iso) return '—';
+        if (!iso) return '-';
         return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
@@ -585,7 +585,7 @@ export default function Admin() {
                         className="rounded-xl border border-black/5 bg-[hsl(var(--card))] p-4 sm:p-5"
                     >
                         <div className="label-caps">{s.label}</div>
-                        <div className="mt-2 font-heading italic text-[hsl(var(--primary))] text-4xl leading-none">
+                        <div className="mt-2 font-heading text-[hsl(var(--primary))] text-4xl leading-none">
                             {s.value}
                         </div>
                     </div>
@@ -668,7 +668,7 @@ export default function Admin() {
                                                 <StatusBadge status={k.status} />
                                             </td>
                                             <td className="px-4 py-3 text-[hsl(var(--muted-foreground))]">
-                                                {k.company || '—'}
+                                                {k.company || '-'}
                                             </td>
                                             <td className="px-4 py-3 text-[hsl(var(--muted-foreground))]">
                                                 {formatDate(k.created_at)}
@@ -720,7 +720,7 @@ export default function Admin() {
                                                 </a>
                                             </td>
                                             <td className="px-4 py-3 text-[hsl(var(--muted-foreground))]">
-                                                {c.phone || '—'}
+                                                {c.phone || '-'}
                                             </td>
                                             <td className="px-4 py-3">
                                                 <span className="font-mono text-xs tracking-wider">{c.key}</span>

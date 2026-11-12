@@ -41,7 +41,7 @@ export default function DemoDialog({ triggerClassName, triggerLabel = 'Demander 
         try {
             setSubmitting(true);
             await submitDemoRequest(form);
-            toast.success('Demande envoyée — nous vous recontactons sous 48h.');
+            toast.success('Demande envoyée, nous vous recontactons sous 48h.');
             setOpen(false);
             setForm({ nom: '', entreprise: '', email: '', telephone: '', taille_scierie: '', volume: '', message: '' });
         } catch (err) {

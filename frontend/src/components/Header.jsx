@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
-import { LOGO_URL } from '@/lib/assets';
+import { LOGO_URL, WORDMARK_URL } from '@/lib/assets';
 import DemoDialog from '@/components/DemoDialog';
 
 const NAV = [
@@ -18,15 +18,15 @@ export default function Header() {
     return (
         <header
             data-testid="site-header"
-            className="sticky top-0 z-40 backdrop-blur-md bg-[hsla(42,36%,93%,0.78)] border-b border-black/5"
+            className="fixed inset-x-0 top-3 sm:top-5 z-40 px-3 sm:px-6 pointer-events-none"
         >
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
+            <div className="pointer-events-auto max-w-5xl mx-auto rounded-2xl bg-[hsla(42,36%,97%,0.92)] backdrop-blur-md border border-black/5 shadow-[0_12px_40px_rgba(17,17,17,0.18)] px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-4">
                 <Link
                     to="/"
                     data-testid="site-logo"
                     className="flex items-center gap-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] rounded-full pr-2"
                 >
-                    <span className="inline-flex h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden bg-[hsl(38_45%_92%)] ring-1 ring-black/5">
+                    <span className="h-11">
                         <img
                             src={LOGO_URL}
                             alt="Beaver logo"
@@ -34,14 +34,7 @@ export default function Header() {
                             loading="eager"
                         />
                     </span>
-                    <span className="flex flex-col leading-tight">
-                        <span className="font-heading text-[hsl(var(--primary))] text-lg sm:text-xl font-medium tracking-tight">
-                            Beaver
-                        </span>
-                        <span className="hidden sm:block text-[10px] tracking-[0.2em] uppercase text-[hsl(var(--muted-foreground))]">
-                            Vision IA · Scieries
-                        </span>
-                    </span>
+                    <img src={WORDMARK_URL} alt="Beaver" className="h-6 sm:h-7 w-auto" loading="eager" />
                 </Link>
 
                 <nav
@@ -87,10 +80,10 @@ export default function Header() {
 
             {open && (
                 <div
-                    className="md:hidden border-t border-black/5 bg-[hsl(var(--background))]"
+                    className="pointer-events-auto md:hidden max-w-5xl mx-auto mt-2 rounded-2xl border border-black/5 bg-[hsl(var(--background))] shadow-[0_12px_40px_rgba(17,17,17,0.18)]"
                     data-testid="mobile-menu"
                 >
-                    <nav className="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1">
+                    <nav className="px-3 py-3 flex flex-col gap-1">
                         {NAV.map((item) => (
                             <NavLink
                                 key={item.to}

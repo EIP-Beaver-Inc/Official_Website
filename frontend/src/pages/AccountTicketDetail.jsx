@@ -68,7 +68,7 @@ function SatisfactionForm({ ticketId, onDone }) {
 
     return (
         <div className="rounded-2xl border border-[hsl(var(--primary)/0.2)] bg-[hsl(38_45%_96%)] p-6">
-            <div className="font-medium mb-1">Ce ticket est résolu — comment s'est passée votre expérience ?</div>
+            <div className="font-medium mb-1">Ce ticket est résolu, comment s'est passée votre expérience ?</div>
             <p className="text-sm text-[hsl(var(--muted-foreground))] mb-5">
                 Votre évaluation nous aide à améliorer notre support.
             </p>
@@ -192,7 +192,7 @@ export default function AccountTicketDetail() {
                     <span className="text-xs text-[hsl(var(--muted-foreground))]">{ticket.category}</span>
                     <span className="text-xs text-[hsl(var(--muted-foreground))]">· Ouvert le {formatDate(ticket.created_at)}</span>
                 </div>
-                <h1 className="font-heading text-2xl sm:text-3xl tracking-[-0.02em]">{ticket.subject}</h1>
+                <h1 className="font-display font-semibold text-3xl sm:text-4xl tracking-[-0.04em] [text-wrap:balance]">{ticket.subject}</h1>
             </div>
 
             {/* Thread */}
@@ -213,7 +213,7 @@ export default function AccountTicketDetail() {
             {isClosed && !needsSatisfaction && (
                 <div className="mb-6 rounded-xl border border-black/5 bg-[hsl(var(--card))] p-4 text-sm text-center text-[hsl(var(--muted-foreground))]">
                     Ce ticket est fermé.{' '}
-                    {ticket.satisfaction && <span className="text-green-600 font-medium">Évaluation soumise — merci !</span>}
+                    {ticket.satisfaction && <span className="text-green-600 font-medium">Évaluation soumise, merci !</span>}
                 </div>
             )}
 

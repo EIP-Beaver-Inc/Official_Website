@@ -16,13 +16,15 @@ export default function PillButton({
     const sizes = {
         sm: 'h-10 px-4 text-sm',
         md: 'h-11 px-5 text-sm',
-        lg: 'h-12 sm:h-[54px] px-6 sm:px-7 text-sm sm:text-base',
+        lg: 'h-12 sm:h-[3.375rem] px-6 sm:px-7 text-sm sm:text-base',
     };
     const variants = {
         primary:
             'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(14_66%_38%)] shadow-[0_8px_24px_rgba(168,65,42,0.18)]',
         outline:
             'bg-transparent border border-black/15 text-[hsl(var(--foreground))] hover:bg-[hsl(var(--card))]',
+        light:
+            'bg-white/5 backdrop-blur-sm border border-white/30 text-white hover:bg-white/15',
         ghost:
             'bg-[hsl(var(--card))] border border-black/5 text-[hsl(var(--foreground))] hover:bg-[hsl(38_45%_94%)]',
     };

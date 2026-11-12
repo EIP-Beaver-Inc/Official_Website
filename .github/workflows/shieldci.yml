@@ -1,0 +1,13 @@
+name: ShieldCI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  shieldci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Richonn/ShieldCI@v1
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}

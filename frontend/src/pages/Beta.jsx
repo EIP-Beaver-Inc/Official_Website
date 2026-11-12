@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { KeyRound, ArrowRight, Loader2 } from 'lucide-react';
+import { KeyRound, ArrowRight, Loader2, Download, BookOpen, LifeBuoy } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { validateBetaKey, betaLogin } from '@/lib/api';
+import PageHero from '@/components/PageHero';
 
 function KeyInput({ value, onChange }) {
     return (
@@ -40,7 +41,7 @@ function LoginForm() {
         } catch (err) {
             const status = err?.response?.status;
             const detail = err?.response?.data?.detail;
-            if (status === 400) toast.error('Clé non encore activée — utilisez l\'onglet "Première connexion".');
+            if (status === 400) toast.error('Clé non encore activée, utilisez l\'onglet "Première connexion".');
             else if (status === 404) toast.error('Clé invalide. Vérifiez votre email de Beaver.');
             else if (status === 403) toast.error('Cette clé a été révoquée. Contactez Beaver.');
             else if (status === 410) toast.error('Cette clé est expirée. Contactez Beaver.');
@@ -87,7 +88,7 @@ function RegisterForm() {
             const status = err?.response?.status;
             const detail = err?.response?.data?.detail;
             if (status === 404) toast.error('Clé invalide. Vérifiez votre email de Beaver.');
-            else if (status === 409) toast.error('Cette clé a déjà été activée — utilisez l\'onglet "Se connecter".');
+            else if (status === 409) toast.error('Cette clé a déjà été activée, utilisez l\'onglet "Se connecter".');
             else if (status === 410) toast.error('Cette clé est expirée. Contactez Beaver.');
             else if (status === 403) toast.error('Cette clé a été révoquée. Contactez Beaver.');
             else toast.error(detail || 'Erreur lors de l\'activation.');
@@ -132,64 +133,82 @@ function RegisterForm() {
     );
 }
 
+const PERKS = [
+    { Icon: Download, title: "L'application Beaver", text: "Téléchargez la dernière version de l'application." },
+    { Icon: BookOpen, title: 'Guides et tutoriels', text: 'La documentation pour installer et prendre en main Beaver.' },
+    { Icon: LifeBuoy, title: 'Suivi des tickets', text: "Posez vos questions et suivez les réponses de l'équipe." },
+];
+
 export default function Beta() {
     const [tab, setTab] = useState('login');
 
     return (
-        <section className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-            <div data-animate="fade-up">
-                <div className="label-caps">
-                    <span className="text-[hsl(var(--primary))]">Accès beta</span> · Beaver
-                </div>
-                <h1 className="mt-3 font-heading text-4xl sm:text-5xl leading-[1.04] tracking-[-0.02em]">
-                    Espace <span className="brick-italic">client</span>
-                </h1>
-                <p className="mt-5 text-[hsl(var(--muted-foreground))] leading-[1.7]">
-                    Connectez-vous avec votre clé d'accès beta pour télécharger l'application, consulter les guides et suivre vos tickets.
-                </p>
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+            <div className="lg:col-span-6">
+                <PageHero
+                    kicker="Accès beta · Beaver"
+                    title={
+                        <>
+                            Votre espace <span className="text-primary">client.</span>
+                        </>
+                    }
+                    subtitle="Connectez-vous avec votre clé d'accès beta pour télécharger l'application, consulter les guides et suivre vos tickets."
+                />
+                <ul className="mt-10 space-y-3" data-animate="fade-up">
+                    {PERKS.map(({ Icon, title, text }) => (
+                        <li key={title} className="flex items-start gap-4 rounded-2xl border border-black/5 bg-card/70 p-4">
+                            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                                <Icon className="h-4 w-4" />
+                            </span>
+                            <div>
+                                <div className="font-display font-semibold tracking-[-0.02em]">{title}</div>
+                                <div className="mt-0.5 text-sm text-muted-foreground">{text}</div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
             </div>
 
-            <div data-animate="fade-up" className="mt-10 rounded-2xl border border-black/5 bg-[hsl(var(--card))] shadow-[0_18px_44px_rgba(17,17,17,0.06)] overflow-hidden">
-                {/* Tabs */}
-                <div className="flex border-b border-black/5">
-                    {[
-                        { id: 'login', label: 'Se connecter' },
-                        { id: 'register', label: 'Première connexion' },
-                    ].map(({ id, label }) => (
-                        <button
-                            key={id}
-                            onClick={() => setTab(id)}
-                            className={`flex-1 py-4 text-sm font-medium transition-colors ${
-                                tab === id
-                                    ? 'border-b-2 border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
-                                    : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'
-                            }`}
-                        >
-                            {label}
-                        </button>
-                    ))}
-                </div>
+            <div className="lg:col-span-6 lg:sticky lg:top-32" data-animate="fade-up">
+                <div className="rounded-[2rem] border border-black/5 bg-card p-6 sm:p-8 shadow-[0_30px_70px_-40px_rgba(60,35,20,0.4)]">
+                    {/* Tabs */}
+                    <div className="grid grid-cols-2 gap-1 rounded-full bg-background p-1 border border-black/5">
+                        {[
+                            { id: 'login', label: 'Se connecter' },
+                            { id: 'register', label: 'Première connexion' },
+                        ].map(({ id, label }) => (
+                            <button
+                                key={id}
+                                type="button"
+                                onClick={() => setTab(id)}
+                                className={`rounded-full py-2.5 text-sm font-medium transition-all duration-300 ${
+                                    tab === id ? 'bg-primary text-primary-foreground shadow-[0_6px_18px_rgba(168,65,42,0.25)]' : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
 
-                <div className="p-6 sm:p-8">
-                    <div className="flex items-center gap-3 mb-6">
-                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--primary)/0.1)]">
-                            <KeyRound className="h-5 w-5 text-[hsl(var(--primary))]" />
+                    <div className="mt-8 flex items-center gap-3 mb-6">
+                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                            <KeyRound className="h-5 w-5 text-primary" />
                         </span>
-                        <span className="font-medium">
+                        <span className="font-display font-semibold text-lg tracking-[-0.02em]">
                             {tab === 'login' ? 'Connexion avec votre clé' : 'Activation de votre clé'}
                         </span>
                     </div>
 
                     {tab === 'login' ? <LoginForm /> : <RegisterForm />}
                 </div>
-            </div>
 
-            <p className="mt-6 text-center text-sm text-[hsl(var(--muted-foreground))]">
-                Pas encore de clé ?{' '}
-                <a href="/contact" className="text-[hsl(var(--primary))] underline underline-offset-4">
-                    Contactez-nous
-                </a>
-            </p>
+                <p className="mt-6 text-center text-sm text-muted-foreground">
+                    Pas encore de clé ?{' '}
+                    <a href="/contact" className="text-primary underline underline-offset-4">
+                        Contactez-nous
+                    </a>
+                </p>
+            </div>
         </section>
     );
 }

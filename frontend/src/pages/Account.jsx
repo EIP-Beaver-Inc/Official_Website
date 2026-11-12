@@ -9,6 +9,9 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { fetchBetaMe, fetchTutorials, listMyTickets, submitFeedback } from '@/lib/api';
+import PageHero from '@/components/PageHero';
+import LiveDot from '@/components/LiveDot';
+import BrickPanel from '@/components/BrickPanel';
 
 const FEEDBACK_CATEGORIES = ['Interface', 'Performance', 'Précision IA', 'Documentation', 'Autre'];
 
@@ -145,13 +148,13 @@ function FeedbackForm() {
     };
 
     if (done) return (
-        <div className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-6 text-center text-sm text-[hsl(var(--muted-foreground))]">
+        <div className="rounded-3xl border border-black/5 bg-card p-6 text-center text-sm text-[hsl(var(--muted-foreground))]">
             Merci pour votre retour ! <button onClick={() => setDone(false)} className="underline underline-offset-4 ml-1">Envoyer un autre</button>
         </div>
     );
 
     return (
-        <form onSubmit={onSubmit} className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-6 space-y-4">
+        <form onSubmit={onSubmit} className="rounded-3xl border border-black/5 bg-card p-6 space-y-4">
             <div className="flex flex-col gap-1.5">
                 <Label className="label-caps">Catégorie</Label>
                 <div className="flex flex-wrap gap-2">
@@ -244,66 +247,56 @@ export default function Account() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-20 space-y-12">
 
             {/* Header */}
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                    <div className="label-caps mb-1">
-                        <span className="text-[hsl(var(--primary))]">Espace client</span> · Beaver Beta
-                    </div>
-                    <h1 className="font-heading text-3xl sm:text-4xl tracking-[-0.02em]">
-                        {user?.company ?? 'Bienvenue'}
-                    </h1>
-                    <div className="mt-2 flex items-center gap-2 flex-wrap">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-medium">
-                            <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                            Accès actif
-                        </span>
-                        {user?.expires_at && (
-                            <span className="text-xs text-[hsl(var(--muted-foreground))]">
-                                Expire le {formatDate(user.expires_at)}
-                            </span>
-                        )}
-                    </div>
+            <PageHero
+                size="md"
+                kicker="Espace client · Beaver Beta"
+                title={user?.company ?? 'Bienvenue'}
+            >
+                <div className="mt-5 flex items-center gap-3 flex-wrap">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-[hsl(120_30%_40%/0.1)] text-[hsl(120_30%_28%)] px-3 py-1.5 font-mono-ui text-[0.6875rem] uppercase tracking-[0.12em]">
+                        <LiveDot color="bg-[hsl(120_35%_40%)]" />
+                        Accès actif
+                    </span>
+                    {user?.expires_at && <span className="text-sm text-muted-foreground">Expire le {formatDate(user.expires_at)}</span>}
+                    <button
+                        onClick={logout}
+                        className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-black/10 px-4 h-10 text-sm hover:bg-card transition-colors text-muted-foreground shrink-0"
+                    >
+                        <LogOut className="h-3.5 w-3.5" />
+                        Déconnexion
+                    </button>
                 </div>
-                <button
-                    onClick={logout}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-black/10 px-3 h-9 text-sm hover:bg-[hsl(var(--card))] transition-colors text-[hsl(var(--muted-foreground))] shrink-0"
-                >
-                    <LogOut className="h-3.5 w-3.5" />
-                    Déconnexion
-                </button>
-            </div>
+            </PageHero>
 
             {/* Download */}
-            <div className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-6 sm:p-8">
-                <div className="label-caps mb-4">Téléchargement</div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <BrickPanel glow="90% 10%" className="p-6 sm:p-10">
+                <div className="flex flex-col sm:flex-row sm:items-end gap-6">
                     <div className="flex-1">
-                        <div className="font-heading text-2xl">Beaver {APP_VERSION}</div>
-                        <div className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
-                            Windows 10/11 · x64 · Aucune installation requise
-                        </div>
+                        <div className="font-mono-ui text-[0.6875rem] uppercase tracking-[0.14em] text-primary-foreground/70">Téléchargement</div>
+                        <div className="mt-4 font-display font-semibold text-4xl sm:text-5xl tracking-[-0.04em]">Beaver {APP_VERSION}</div>
+                        <div className="mt-2 text-sm text-primary-foreground/75">Windows 10/11 · x64 · Aucune installation requise</div>
                     </div>
                     <div className="flex gap-3">
                         <a
                             href={DOWNLOAD_URL}
-                            className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] text-[hsl(var(--primary-foreground))] px-5 h-11 text-sm font-medium transition-colors shadow-[0_8px_24px_rgba(168,65,42,0.18)]"
+                            className="inline-flex items-center gap-2 rounded-full bg-primary-foreground text-primary hover:bg-white hover:scale-[1.03] px-6 h-12 text-sm font-medium transition-[background-color,transform]"
                         >
                             <Download className="h-4 w-4" />
                             Télécharger
                         </a>
                         <a
                             href="mailto:beaver.eip@gmail.com"
-                            className="inline-flex items-center gap-2 rounded-full border border-black/10 px-4 h-11 text-sm font-medium hover:bg-[hsl(38_45%_94%)] transition-colors"
+                            className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/5 px-5 h-12 text-sm font-medium hover:bg-primary-foreground/15 transition-colors"
                         >
                             <MessageSquare className="h-4 w-4" />
                             Support
                         </a>
                     </div>
                 </div>
-            </div>
+            </BrickPanel>
 
             {/* Tutorials */}
             <div>
@@ -336,7 +329,7 @@ export default function Account() {
                         </span>
                     )}
                 </div>
-                <div className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-6 flex items-center justify-between gap-4">
+                <div className="rounded-3xl border border-black/5 bg-card p-6 flex items-center justify-between gap-4">
                     <div>
                         <div className="text-sm font-medium">
                             {ticketSummary.total === 0
@@ -364,7 +357,7 @@ export default function Account() {
             {/* FAQ */}
             <div>
                 <div className="label-caps mb-4">Questions fréquentes</div>
-                <div className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] px-5">
+                <div className="rounded-3xl border border-black/5 bg-card px-5">
                     {FAQ.map((item, i) => <FaqItem key={i} item={item} />)}
                 </div>
             </div>
