@@ -16,7 +16,7 @@ import BrickPanel from '@/components/BrickPanel';
 const FEEDBACK_CATEGORIES = ['Interface', 'Performance', 'Précision IA', 'Documentation', 'Autre'];
 
 const DOWNLOAD_URL = '#';
-const APP_VERSION = '0.1.0-beta';
+const APP_VERSION = '2.1 bêta';
 
 const CATEGORY_COLORS = {
     'Démarrage': 'bg-green-100 text-green-700',
@@ -89,20 +89,24 @@ function TutorialCard({ tutorial }) {
 
 const FAQ = [
     {
-        q: "L'application ne détecte pas ma caméra.",
-        a: "Vérifiez que la caméra est branchée avant de lancer Beaver. Pour les caméras IP, assurez-vous que l'URL RTSP est correcte et que la caméra est sur le même réseau.",
+        q: "L'application affiche « Caméra indisponible ».",
+        a: "Vérifiez le câble USB de la caméra (sur le boîtier, ou sur le poste sans boîtier) et qu'aucune autre application ne l'utilise. Beaver réessaie tout seul : l'image revient sans rien relancer. Seules les caméras USB sont prises en charge, pas les caméras réseau (RTSP).",
+    },
+    {
+        q: "Mes planches restent « Non classées ».",
+        a: "Le classement a besoin d'une échelle pour mesurer les défauts en millimètres. Renseignez la distance entre la caméra et la planche dans Paramètres → Détection IA (voir le guide « Régler l'échelle du système »). Le détail de la planche, dans l'Historique, donne la raison exacte.",
     },
     {
         q: "Les classes attribuées me semblent incorrectes.",
-        a: "Recommencez la calibration avec au moins 5 planches de référence. Vérifiez également l'éclairage de la ligne (lumière uniforme, sans reflets) et la mise au point de l'objectif.",
+        a: "Vérifiez l'essence et le produit choisis sur l'image (pastille en haut à gauche) et la distance caméra–planche. Ouvrez la planche dans l'Historique : le défaut qui la limite y est indiqué. Si l'erreur persiste, ouvrez un ticket avec la référence de la planche (P-…).",
     },
     {
-        q: "L'application est lente ou rame.",
-        a: "Beaver recommande un processeur 4 cœurs et 8 Go de RAM minimum. Fermez les autres applications gourmandes. Si le problème persiste, réduisez la résolution caméra dans les paramètres.",
+        q: "L'analyse est lente.",
+        a: "L'analyse est prévue pour une carte graphique NVIDIA. Sans elle, elle tourne sur le processeur, plusieurs fois plus lentement : la vidéo reste fluide mais moins d'images sont analysées. Paramètres → Informations système → « Calcul IA » indique ce qui est utilisé.",
     },
     {
         q: "Comment signaler un bug ?",
-        a: "Envoyez un email à beaver.eip@gmail.com avec une description du problème, les logs (Aide → Afficher les logs → Exporter) et si possible une capture d'écran.",
+        a: "Ouvrez un ticket ou écrivez à beaver.eip@gmail.com avec une description du problème, une capture d'écran du « Journal du boîtier » (bouton sous la vidéo) et, si l'application s'est fermée, le fichier crash.log du dossier .beaver de votre profil Windows.",
     },
 ];
 
@@ -277,7 +281,7 @@ export default function Account() {
                     <div className="flex-1">
                         <div className="font-mono-ui text-[0.6875rem] uppercase tracking-[0.14em] text-primary-foreground/70">Téléchargement</div>
                         <div className="mt-4 font-display font-semibold text-4xl sm:text-5xl tracking-[-0.04em]">Beaver {APP_VERSION}</div>
-                        <div className="mt-2 text-sm text-primary-foreground/75">Windows 10/11 · x64 · Aucune installation requise</div>
+                        <div className="mt-2 text-sm text-primary-foreground/75">Windows 10/11 · x64 · Installation guidée · Carte NVIDIA recommandée</div>
                     </div>
                     <div className="flex gap-3">
                         <a
@@ -382,8 +386,9 @@ export default function Account() {
                         <ul className="space-y-1.5 text-sm text-[hsl(var(--muted-foreground))]">
                             {[
                                 'Le formulaire de retour UX (envoyé par email)',
-                                'La base de données locale : Fichier → Exporter → Base de données',
-                                'Les logs d\'erreur : Aide → Afficher les logs → Exporter',
+                                'L\'historique : Historique → tout sélectionner → Exporter en CSV',
+                                'La base de l\'historique : fichier backend\\data\\beaver.db du dossier Beaver',
+                                'Les journaux : dossier logs de Beaver, et crash.log s\'il existe',
                             ].map((item) => (
                                 <li key={item} className="flex items-start gap-2">
                                     <CheckCircle className="h-4 w-4 shrink-0 mt-0.5 text-[hsl(var(--primary)/0.6)]" />

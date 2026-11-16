@@ -7,7 +7,7 @@ import { DEFECT_TYPES, PLANK_IMAGE, PLANK_SIZE } from '@/lib/plank';
 import LiveDot from '@/components/LiveDot';
 import { MASCOT_INSPECTOR_URL } from '@/lib/assets';
 
-const SPECS = ['YOLOv8 fine-tuné', 'Images recadrées post-ROI', '40 frames minimum'];
+const SPECS = ['BOBER v1.7 · YOLO fine-tuné', 'Planche redressée par ROI', 'Confirmé sur plusieurs images'];
 
 const IMPACTS = {
     'Critique': 'bg-primary',
@@ -17,6 +17,7 @@ const IMPACTS = {
 };
 
 const isLive = (d) => (d.status ? d.status === 'live' : /^(noeud_vif|noeud_mort|fissure)$/.test(d.key));
+const isDetected = (d) => d.status === 'detected';
 
 const PLANK_TYPE = { noeud_vif: 'vif', noeud_mort: 'mort', fissure: 'fissure' };
 const SPECIMENS = {
@@ -125,10 +126,29 @@ function SpecimenCard({ defect, index, total, fan, state, onEnter, onLeave }) {
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-3">{defect.description}</p>
                 <div className="mt-5 flex items-center gap-2 font-mono-ui text-[0.625rem] uppercase tracking-[0.14em] text-[hsl(120_30%_32%)]">
                     <LiveDot color="bg-[hsl(120_35%_40%)]" />
-                    Détecté en production
+                    Détecté par BOBER v1.7
                 </div>
             </div>
         </article>
+    );
+}
+
+function DetectedTile({ defect }) {
+    return (
+        <li className="rounded-2xl bg-card border border-black/5 px-4 py-3.5">
+            <div className="flex items-center justify-between gap-2 font-mono-ui text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5 text-[hsl(120_30%_32%)]">
+                    <LiveDot color="bg-[hsl(120_35%_40%)]" />
+                    Détecté
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                    <span className={`h-1.5 w-1.5 rounded-full ${IMPACTS[defect.impact] || 'bg-muted-foreground'}`} />
+                    {defect.impact}
+                </span>
+            </div>
+            <div className="mt-2 font-display font-semibold text-lg tracking-[-0.02em] text-foreground">{defect.name}</div>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">{defect.description}</p>
+        </li>
     );
 }
 
@@ -162,7 +182,9 @@ export default function DefectsSection() {
     }, []);
 
     const live = defects.filter(isLive);
-    const soon = defects.filter((d) => !isLive(d));
+    const detected = defects.filter(isDetected);
+    const soon = defects.filter((d) => !isLive(d) && !isDetected(d));
+    const covered = live.length + detected.length;
     const cardState = (i) => (hovered === null ? 'idle' : i === hovered ? 'hover' : i < hovered ? 'left' : 'right');
 
     return (
@@ -183,7 +205,7 @@ export default function DefectsSection() {
                     />
                     <Kicker className="justify-center">Détection</Kicker>
                     <h2 className="mt-5 font-display font-semibold text-5xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-[-0.045em] text-foreground">
-                        Nœuds et fissures.
+                        Nœuds, fentes, piqûres.
                         <br />
                         <span className="text-primary">Détectés aujourd’hui.</span>
                     </h2>
@@ -216,13 +238,24 @@ export default function DefectsSection() {
                     </div>
                 )}
 
+                {detected.length > 0 && (
+                    <div className="mt-12 sm:mt-16">
+                        <div className="font-mono-ui text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground">Aussi détectés</div>
+                        <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                            {detected.map((d) => (
+                                <DetectedTile key={d.key} defect={d} />
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
                 {soon.length > 0 && (
                     <div className="mt-16 sm:mt-20">
                         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                             <div>
                                 <div className="font-mono-ui text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground">En entraînement</div>
                                 <h3 className="mt-2 font-display font-semibold text-2xl sm:text-3xl tracking-[-0.035em] text-foreground">
-                                    {soon.length} singularités en développement, <span className="text-primary">avec votre aide ?</span>
+                                    {soon.length} singularités en entraînement, <span className="text-primary">avec votre aide ?</span>
                                 </h3>
                             </div>
                             <div className="flex items-center gap-4">
@@ -230,11 +263,11 @@ export default function DefectsSection() {
                                     <div className="flex justify-between font-mono-ui text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground">
                                         <span>Couverture</span>
                                         <span className="text-foreground">
-                                            {live.length}/{defects.length}
+                                            {covered}/{defects.length}
                                         </span>
                                     </div>
                                     <div className="mt-1.5 h-1.5 rounded-full bg-black/5 overflow-hidden">
-                                        <div className="h-full rounded-full bg-primary" style={{ width: `${(live.length / defects.length) * 100}%` }} />
+                                        <div className="h-full rounded-full bg-primary" style={{ width: `${(covered / defects.length) * 100}%` }} />
                                     </div>
                                 </div>
                                 <PillButton to="/beta" size="md" className="shrink-0" testId="defects-join-beta">

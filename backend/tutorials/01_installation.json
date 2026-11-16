@@ -3,24 +3,28 @@
   "order": 1,
   "title": "Installation et premier lancement",
   "category": "Démarrage",
-  "description": "Télécharger, décompresser et lancer Beaver pour la première fois sur votre poste.",
-  "duration": "5 min",
+  "description": "Installer Beaver sur un poste Windows et l'activer avec votre clé de licence.",
+  "duration": "30 min",
   "steps": [
     {
-      "title": "Télécharger le binaire",
-      "content": "Depuis votre espace client, cliquez sur le bouton « Télécharger Beaver ». Une archive .zip (~150 Mo) sera téléchargée dans votre dossier Téléchargements."
+      "title": "Télécharger l'archive",
+      "content": "Depuis votre espace client, cliquez sur « Télécharger ». Une archive .zip est enregistrée dans votre dossier Téléchargements. Beaver fonctionne sous Windows 10 et 11 (64 bits). Une carte graphique NVIDIA est fortement recommandée : sans elle, l'analyse tourne sur le processeur, nettement plus lentement."
     },
     {
       "title": "Décompresser l'archive",
-      "content": "Faites un clic droit sur le fichier .zip et choisissez « Extraire tout ». Choisissez un répertoire accessible (ex. C:\\Beaver). Aucune installation système n'est requise : tout est contenu dans ce dossier."
+      "content": "Faites un clic droit sur le fichier .zip, choisissez « Extraire tout » et indiquez un dossier stable, par exemple C:\\Beaver. Tout Beaver vit dans ce dossier : l'application, le service d'analyse, les modèles d'IA et l'historique des planches."
     },
     {
-      "title": "Lancer Beaver.exe",
-      "content": "Double-cliquez sur Beaver.exe. Si Windows affiche une fenêtre SmartScreen (« Application inconnue »), cliquez sur « Informations complémentaires » puis « Exécuter quand même ». Cette alerte est normale pour un logiciel non encore signé commercialement."
+      "title": "Lancer l'installation",
+      "content": "Double-cliquez sur BeaverSetup.exe et acceptez la demande d'autorisation. L'installation ajoute ce qui manque au poste (outils de compilation, Python, ffmpeg pour la vidéo, et l'accélération graphique si une carte NVIDIA est présente), prépare le service d'analyse et crée sa configuration. La première fois, comptez plusieurs dizaines de minutes : plusieurs gigaoctets sont téléchargés. Si Windows affiche SmartScreen (« Application inconnue »), cliquez sur « Informations complémentaires » puis « Exécuter quand même » : le logiciel n'est pas encore signé commercialement."
     },
     {
-      "title": "Assistant de première configuration",
-      "content": "Au premier lancement, un assistant vous demande de choisir la langue, le répertoire de stockage des données (logs, base locale) et la résolution d'affichage. Ces paramètres peuvent être modifiés ensuite dans Fichier → Paramètres."
+      "title": "Démarrer Beaver",
+      "content": "Les fois suivantes, double-cliquez sur beaver-launcher.exe dans le dossier de Beaver. L'application ouvre sa fenêtre et démarre elle-même le service d'analyse lorsqu'aucun boîtier n'est configuré : il n'y a rien d'autre à lancer."
+    },
+    {
+      "title": "Activer la licence",
+      "content": "Au premier lancement, saisissez la clé de licence reçue par e-mail sur l'écran d'activation. Le tableau de bord s'ouvre ensuite. En bas de la barre latérale, « État du système » indique si le service d'analyse est connecté, si la caméra filme et si l'IA analyse."
     }
   ]
 }

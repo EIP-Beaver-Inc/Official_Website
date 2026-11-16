@@ -3,24 +3,28 @@
   "order": 5,
   "title": "Exporter les données pour le retour beta",
   "category": "Bêta",
-  "description": "Exporter la base de données locale et les logs d'erreur à envoyer à l'équipe Beaver en fin de bêta.",
+  "description": "Rassembler l'historique et les journaux à envoyer à l'équipe Beaver en fin de bêta.",
   "duration": "5 min",
   "steps": [
     {
-      "title": "Exporter la base de données locale",
-      "content": "Dans Beaver, allez dans Fichier → Exporter → Base de données. Choisissez un répertoire de destination. Un fichier beaver_data.db sera créé. Ce fichier contient l'historique des classifications et vos corrections manuelles : c'est la donnée la plus précieuse pour nous."
+      "title": "Exporter l'historique en CSV",
+      "content": "Dans Historique, cochez la case de l'en-tête du tableau pour sélectionner toutes les planches, puis cliquez sur « Exporter en CSV ». Le fichier contient la référence, la date, l'essence, le produit, les dimensions, le nombre de défauts et la classe de chaque planche."
     },
     {
-      "title": "Exporter les logs d'erreur",
-      "content": "Allez dans Aide → Afficher les logs. Cliquez sur « Exporter les logs ». Un fichier beaver_logs.zip sera créé dans le répertoire de données (configurable dans Fichier → Paramètres → Général)."
+      "title": "Copier la base de l'historique",
+      "content": "Les rapports complets des planches (chaque défaut, sa position, ses mesures et la raison de la note) sont dans le fichier backend\\data\\beaver.db du dossier Beaver. Fermez l'application, puis copiez ce fichier : c'est la donnée la plus précieuse pour nous. Avec un boîtier sur la ligne, la base est sur le boîtier : demandez-nous la marche à suivre."
     },
     {
-      "title": "Remplir le formulaire de retour UX",
-      "content": "L'équipe Beaver vous enverra un formulaire de retour par email en fin de bêta. Prenez 15 à 20 minutes pour le remplir : vos retours sur l'interface, la précision, les cas difficiles et les fonctionnalités manquantes sont essentiels pour la V1."
+      "title": "Rassembler les journaux",
+      "content": "Le bouton « Journal du boîtier » sous la vidéo affiche les 200 derniers messages du service : faites-en une capture d'écran si un problème est survenu. Les journaux complets sont dans le dossier logs du dossier Beaver. Si l'application s'est fermée brutalement, joignez aussi le fichier crash.log du dossier .beaver de votre profil Windows (C:\\Users\\<vous>\\.beaver)."
+    },
+    {
+      "title": "Remplir le formulaire de retour",
+      "content": "L'équipe Beaver vous enverra un formulaire de retour par e-mail en fin de bêta. Prenez 15 à 20 minutes pour le remplir : vos retours sur l'interface, la précision, les cas difficiles et les fonctionnalités manquantes sont essentiels."
     },
     {
       "title": "Envoyer les fichiers",
-      "content": "Envoyez par email à beaver.eip@gmail.com les deux fichiers exportés (beaver_data.db et beaver_logs.zip) accompagnés du formulaire rempli. Si les fichiers sont trop volumineux, utilisez un service de transfert (WeTransfer, Google Drive…)."
+      "content": "Envoyez par e-mail à beaver.eip@gmail.com le fichier CSV, la base beaver.db et les journaux, avec le formulaire rempli. Si les fichiers sont trop volumineux, utilisez un service de transfert (WeTransfer, Google Drive…)."
     }
   ]
 }

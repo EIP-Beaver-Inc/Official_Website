@@ -1,5 +1,5 @@
 const STATS = [
-    { value: '3', unit: 'classes', label: 'Nœuds et fissures détectés' },
+    { value: '8', unit: 'défauts', label: 'Détectés par l’IA' },
     { value: 'EN 975-1', unit: '', label: 'Classement normé' },
     { value: '< 7', unit: 'jours', label: 'Mise en service' },
 ];

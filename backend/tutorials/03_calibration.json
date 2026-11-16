@@ -1,30 +1,30 @@
 {
   "id": "calibration",
   "order": 3,
-  "title": "Calibration du système",
+  "title": "Régler l'échelle du système",
   "category": "Configuration",
-  "description": "Calibrer Beaver avec des planches de référence pour obtenir des résultats précis.",
+  "description": "Indiquer la distance entre la caméra et la planche pour que Beaver mesure en millimètres et puisse classer.",
   "duration": "15 min",
   "steps": [
     {
-      "title": "Préparer les planches de référence",
-      "content": "Munissez-vous d'au moins 3 planches dont vous connaissez la classe EN 975-1 avec certitude (idéalement une par catégorie : Q-B, Q-S, Q-F). Ces planches servent d'étalon pour ajuster les seuils de détection."
+      "title": "Pourquoi une échelle",
+      "content": "La norme EN 975-1 fixe toutes ses limites en millimètres : diamètre d'un nœud, longueur d'une fente. Pour transformer les pixels de l'image en millimètres, Beaver a besoin de son échelle. Sans elle, les défauts sont bien détectés, mais les planches restent « Non classées »."
     },
     {
-      "title": "Lancer l'assistant de calibration",
-      "content": "Dans Beaver, cliquez sur Outils → Calibration. L'assistant s'ouvre et vous guide étape par étape. Assurez-vous que la caméra est bien connectée et que l'éclairage de la ligne est allumé avant de commencer."
+      "title": "Mesurer la distance",
+      "content": "Mesurez, au mètre ou au télémètre laser, la distance entre l'objectif de la caméra et la face de la planche filmée, en millimètres. La caméra doit viser le tapis à la verticale : inclinée, l'échelle change d'un bord à l'autre de la planche."
     },
     {
-      "title": "Passer les planches sous la caméra",
-      "content": "Pour chaque planche, entrez la classe connue dans le champ prévu, puis faites passer la planche sous la caméra à la vitesse normale de production. Beaver capture automatiquement les images et analyse les défauts."
+      "title": "Saisir la distance",
+      "content": "Dans Paramètres → Détection IA, renseignez « Distance boîtier – planche (mm) » puis cliquez sur « Enregistrer » : l'analyse redémarre avec cette échelle. Un boîtier livré avec son fichier d'étalonnage en tire la focale de sa caméra. Sans étalonnage, la focale est déduite du champ de vision horizontal de la caméra (70° par défaut, à corriger d'après la fiche technique de l'objectif) : les mesures sont alors approchées. La ligne sous le champ indique ce que le boîtier applique réellement."
     },
     {
-      "title": "Valider les résultats de calibration",
-      "content": "Après les 3 planches minimum, Beaver affiche un rapport de calibration avec le taux de concordance. Un taux ≥ 85 % est recommandé. Si le taux est inférieur, vérifiez l'éclairage et la mise au point, puis recommencez."
+      "title": "Contrôler avec une planche connue",
+      "content": "Passez une planche dont vous connaissez la largeur, puis ouvrez-la dans l'Historique : sa largeur mesurée y est affichée. Si elle s'écarte de la réalité, corrigez la distance ou le champ de vision et recommencez. À refaire chaque fois que le boîtier ou la caméra est déplacé."
     },
     {
-      "title": "Sauvegarder le profil de calibration",
-      "content": "Donnez un nom à votre profil (ex. « Ligne 1 – Chêne ») et cliquez sur Sauvegarder. Vous pouvez créer plusieurs profils pour différentes essences ou lignes de production."
+      "title": "Passage d'étalonnage",
+      "content": "Pour régler la coupe en faisant passer une planche le long de la lame avant de la scier, cliquez sur « Passage d'étalonnage » sous la vidéo : la planche suivante n'est ni classée ni comptée, elle ne figurera donc pas deux fois dans vos chiffres. Le comptage reprend seul dès qu'elle est sortie du champ, ou après 5 minutes sans planche."
     }
   ]
 }

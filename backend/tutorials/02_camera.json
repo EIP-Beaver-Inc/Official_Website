@@ -1,30 +1,30 @@
 {
   "id": "camera",
   "order": 2,
-  "title": "Connexion de la caméra",
+  "title": "Caméra et boîtier d'analyse",
   "category": "Configuration",
-  "description": "Connecter une caméra IP (RTSP) ou USB à Beaver et vérifier le flux vidéo.",
+  "description": "Relier Beaver au boîtier de la ligne, ou à une caméra USB branchée sur le poste.",
   "duration": "10 min",
   "steps": [
     {
-      "title": "Ouvrir les paramètres caméra",
-      "content": "Dans Beaver, allez dans Fichier → Paramètres → Caméra. Vous verrez les deux modes disponibles : USB (caméra branchée directement au PC) et IP/RTSP (caméra réseau)."
+      "title": "Deux installations possibles",
+      "content": "Avec un boîtier Beaver posé au bord de la ligne, c'est lui qui filme, analyse et garde l'historique ; les postes de l'atelier s'y connectent et la ligne est classée même quand l'application est fermée. Sans boîtier, le même service tourne sur votre poste avec une caméra USB branchée dessus : la ligne n'est alors classée que lorsque l'application est ouverte."
     },
     {
-      "title": "Caméra USB",
-      "content": "Branchez votre caméra USB avant de lancer Beaver. Dans l'onglet Caméra, sélectionnez « USB » et choisissez le périphérique dans la liste déroulante. Cliquez sur « Tester » pour voir le flux en direct."
+      "title": "Se connecter au boîtier",
+      "content": "Dans Paramètres → Boîtier d'analyse, saisissez l'adresse du boîtier (par exemple http://192.168.1.50:8080) et le jeton d'accès remis à l'installation, puis cliquez sur « Enregistrer et se connecter ». En bas de la barre latérale, « Serveur IA » passe à « Connecté ». La connexion est rétablie automatiquement si le réseau est coupé."
     },
     {
-      "title": "Caméra IP (RTSP)",
-      "content": "Sélectionnez « IP / RTSP ». Entrez l'URL de votre flux, par exemple : rtsp://192.168.1.100:554/stream. Si votre caméra nécessite une authentification, utilisez le format : rtsp://user:password@192.168.1.100:554/stream."
+      "title": "Sans boîtier : la caméra USB du poste",
+      "content": "Branchez la caméra USB avant de lancer Beaver et laissez l'adresse par défaut (http://127.0.0.1:8080). L'application démarre le service sur le poste, qui ouvre la caméra en 1920 × 1080 à 30 images par seconde. Si plusieurs caméras sont branchées, le numéro de celle à utiliser se règle dans config\\beaver.json (source.cameraIndex). Seules les caméras USB sont prises en charge : les caméras réseau (RTSP) ne le sont pas."
     },
     {
-      "title": "Vérifier la qualité du flux",
-      "content": "La résolution recommandée est 1920×1080 minimum à 25 fps. Un indicateur de qualité (vert / orange / rouge) s'affiche dans la barre de statut. Si l'indicateur est orange ou rouge, vérifiez l'éclairage de la ligne et la mise au point de l'objectif."
+      "title": "Vérifier l'image",
+      "content": "Sur le tableau de bord, la vidéo apparaît en quelques secondes avec le badge « IA EN DIRECT ». « Caméra indisponible » : vérifiez le câble USB et qu'aucune autre application n'utilise la caméra ; Beaver réessaie tout seul et l'image revient sans rien relancer. « Flux figé » : aucune image n'est arrivée depuis plus de 2 secondes, l'image affichée n'est plus en direct."
     },
     {
-      "title": "Sauvegarder et appliquer",
-      "content": "Cliquez sur « Sauvegarder ». Beaver mémorise la configuration caméra et la rechargera automatiquement au prochain démarrage."
+      "title": "Essence et produit",
+      "content": "Cliquez sur la pastille « Essence · Produit » en haut à gauche de l'image pour indiquer ce qui passe sur la ligne : chêne ou hêtre, et le produit EN 975-1 (B plots, S plateaux, F frises et avivés, P pièces équarries). Changer ce choix relance l'analyse et clôture la planche en cours : faites-le entre deux planches."
     }
   ]
 }
