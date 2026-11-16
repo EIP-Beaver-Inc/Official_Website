@@ -59,7 +59,7 @@ function crop(spot, aspect) {
     };
 }
 
-function SpecimenCard({ defect, index, total, fan, state, onEnter, onLeave }) {
+function SpecimenCard({ defect, index, total, fan, state, onEnter, onLeave, target }) {
     const type = PLANK_TYPE[defect.key];
     const specimen = SPECIMENS[defect.key];
 
@@ -124,6 +124,7 @@ function SpecimenCard({ defect, index, total, fan, state, onEnter, onLeave }) {
                 </div>
                 <h3 className="mt-3 font-display font-semibold text-3xl tracking-[-0.04em] text-foreground">{defect.name}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-3">{defect.description}</p>
+                <RateBar defect={defect} target={target} />
                 <div className="mt-5 flex items-center gap-2 font-mono-ui text-[0.625rem] uppercase tracking-[0.14em] text-[hsl(120_30%_32%)]">
                     <LiveDot color="bg-[hsl(120_35%_40%)]" />
                     Détecté par BOBER v1.7
@@ -133,7 +134,50 @@ function SpecimenCard({ defect, index, total, fan, state, onEnter, onLeave }) {
     );
 }
 
-function DetectedTile({ defect }) {
+const hasRate = (d) => typeof d.detection_rate === 'number';
+
+// « Sur 100 défauts, l'IA en retrouve N » : une barre, l'objectif de l'équipe
+// IA en pointillé, et la valeur du modèle précédent en repère clair.
+function RateBar({ defect, target, compact = false }) {
+    if (!hasRate(defect)) return null;
+    const now = defect.detection_rate;
+    const before = defect.previous_rate || 0;
+    const reached = now >= target;
+    return (
+        <div className={compact ? 'mt-3' : 'mt-5'}>
+            <div className="flex items-baseline justify-between gap-2">
+                <span className="font-mono-ui text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground">
+                    Retrouvé
+                </span>
+                <span className="text-xs text-muted-foreground">
+                    <span className={`font-display font-semibold tracking-[-0.02em] text-foreground ${compact ? 'text-base' : 'text-xl'}`}>
+                        {now}
+                    </span>{' '}
+                    sur 100
+                </span>
+            </div>
+            <div className="relative mt-1.5 h-2 rounded-full bg-black/5" role="img"
+                aria-label={`Retrouvé ${now} fois sur 100, objectif ${target}, modèle précédent ${before}`}>
+                {before > 0 && (
+                    <div className="absolute inset-y-0 left-0 rounded-full bg-[hsl(var(--primary)/0.18)]" style={{ width: `${before}%` }} />
+                )}
+                <div
+                    className={`absolute inset-y-0 left-0 rounded-full ${reached ? 'bg-[hsl(120_35%_38%)]' : 'bg-primary'}`}
+                    style={{ width: `${now}%` }}
+                />
+                <div className="absolute -top-1 -bottom-1 w-px border-l border-dashed border-foreground/50" style={{ left: `${target}%` }} />
+            </div>
+            {!compact && (
+                <div className="mt-1.5 flex justify-between font-mono-ui text-[0.5625rem] uppercase tracking-[0.1em] text-muted-foreground">
+                    <span>{before > 0 ? `Avant : ${before}` : 'Nouveau'}</span>
+                    <span>Objectif {target}</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function DetectedTile({ defect, target }) {
     return (
         <li className="rounded-2xl bg-card border border-black/5 px-4 py-3.5">
             <div className="flex items-center justify-between gap-2 font-mono-ui text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground">
@@ -148,6 +192,7 @@ function DetectedTile({ defect }) {
             </div>
             <div className="mt-2 font-display font-semibold text-lg tracking-[-0.02em] text-foreground">{defect.name}</div>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">{defect.description}</p>
+            <RateBar defect={defect} target={target} compact />
         </li>
     );
 }
@@ -173,11 +218,15 @@ function LockedTile({ defect, index }) {
 
 export default function DefectsSection() {
     const [defects, setDefects] = useState([]);
+    const [target, setTarget] = useState(70);
     const [hovered, setHovered] = useState(null);
 
     useEffect(() => {
         fetchDefects()
-            .then((d) => setDefects(d.defects || []))
+            .then((d) => {
+                setDefects(d.defects || []);
+                if (typeof d.detection_target === 'number') setTarget(d.detection_target);
+            })
             .catch(() => setDefects([]));
     }, []);
 
@@ -233,6 +282,7 @@ export default function DefectsSection() {
                                 state={cardState(i)}
                                 onEnter={() => setHovered(i)}
                                 onLeave={() => setHovered(null)}
+                                target={target}
                             />
                         ))}
                     </div>
@@ -243,7 +293,7 @@ export default function DefectsSection() {
                         <div className="font-mono-ui text-[0.6875rem] uppercase tracking-[0.14em] text-muted-foreground">Aussi détectés</div>
                         <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                             {detected.map((d) => (
-                                <DetectedTile key={d.key} defect={d} />
+                                <DetectedTile key={d.key} defect={d} target={target} />
                             ))}
                         </ul>
                     </div>

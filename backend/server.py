@@ -18,7 +18,7 @@ from collections import defaultdict, deque
 from datetime import datetime, timezone
 
 from quiz_data import QUIZ, QUIZ_QUESTIONS, build_public_questions, evaluate_answers
-from defects_data import DEFECT_CLASSES, PIPELINE_STEPS, SCORING_CLASSES
+from defects_data import DEFECT_CLASSES, DETECTION_TARGET, PIPELINE_STEPS, SCORING_CLASSES
 from mailer import notify_contact, notify_demo_request
 
 ROOT_DIR = Path(__file__).parent
@@ -326,7 +326,7 @@ async def get_pipeline_info():
 
 @api_router.get("/defects")
 async def get_defects():
-    return {"defects": DEFECT_CLASSES}
+    return {"defects": DEFECT_CLASSES, "detection_target": DETECTION_TARGET}
 
 
 @api_router.get("/scoring")

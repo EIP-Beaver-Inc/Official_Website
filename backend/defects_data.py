@@ -8,37 +8,54 @@ status :
   live      détecté, montré avec une photo sur la page d'accueil
   detected  détecté, listé sans photo
   soon      prévu dans le modèle, pas encore assez d'exemples pour être fiable
+
+detection_rate / previous_rate : part des défauts que le modèle retrouve sur
+des images de test qu'il n'a jamais vues, au seuil optimal, en %, pour
+BOBER v1.7 puis pour le modèle précédent (v1.5). Mesuré par l'équipe IA
+(ORGA-IA_BEAVER, BOBER/comparison_plots/detection_rate_per_class.png).
 """
+
+# Objectif de l'équipe IA pour le taux de détection, en %.
+DETECTION_TARGET = 70
 from typing import List, Dict
 
 
 DEFECT_CLASSES: List[Dict] = [
     {"key": "noeud_vif",       "name": "Nœud sain",      "impact": "Mineur",
      "description": "Nœud adhérent, issu d'une branche vivante au moment de l'abattage. Admis dans la plupart des choix selon son diamètre.",
+     "detection_rate": 56, "previous_rate": 27,
      "status": "live"},
     {"key": "noeud_mort",      "name": "Nœud mort",      "impact": "Modéré",
      "description": "Nœud sombre issu d'une branche déjà morte. Adhérence dégradée, risque de déchaussement : limites plus strictes que le nœud sain.",
+     "detection_rate": 65, "previous_rate": 32,
      "status": "live"},
     {"key": "fissure",         "name": "Fente",          "impact": "Critique",
      "description": "Séparation des fibres dans le sens du fil. Mesurée en longueur, elle déclasse vite la pièce.",
+     "detection_rate": 65, "previous_rate": 44,
      "status": "live"},
     {"key": "noeud_saute",     "name": "Nœud sauté",     "impact": "Modéré",
      "description": "Trou laissé par un nœud tombé de la planche.",
+     "detection_rate": 75, "previous_rate": 31,
      "status": "detected"},
     {"key": "noeud_fendu",     "name": "Nœud fendu",     "impact": "Modéré",
      "description": "Nœud traversé par une fente : compté comme un nœud et comme une fente.",
+     "detection_rate": 79, "previous_rate": 39,
      "status": "detected"},
     {"key": "noeud_pourri",    "name": "Nœud pourri",    "impact": "Critique",
      "description": "Nœud attaqué par la pourriture. Distingué du nœud mort : ses limites sont différentes dans presque tous les choix.",
+     "detection_rate": 59, "previous_rate": 0,
      "status": "detected"},
     {"key": "patte_de_chat",   "name": "Patte de chat",  "impact": "Mineur",
      "description": "Groupe de petits nœuds serrés, typique du chêne.",
+     "detection_rate": 46, "previous_rate": 0,
      "status": "detected"},
     {"key": "piqure",          "name": "Piqûre",         "impact": "Critique",
      "description": "Trous de galeries d'insectes. Exclue des meilleurs choix.",
+     "detection_rate": 44, "previous_rate": 0,
      "status": "detected"},
     {"key": "pourriture",      "name": "Pourriture",     "impact": "Critique",
      "description": "Bois dégradé par des champignons. Encore trop peu d'exemples pour une détection fiable.",
+     "detection_rate": 0, "previous_rate": 0,
      "status": "soon"},
     {"key": "moelle",          "name": "Moelle",         "impact": "Modéré",
      "description": "Cœur de l'arbre. Tissu tendre et instable, il fragilise la stabilité de la pièce.",
