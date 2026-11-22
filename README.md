@@ -49,6 +49,11 @@ Sans `SMTP_USER`/`SMTP_PASSWORD`, les formulaires fonctionnent toujours (stockag
 mais aucun email n'est envoyé (un avertissement est loggé). Le statut d'envoi est stocké
 dans le champ `email_status` (`sent` / `failed` / `disabled`) de chaque document.
 
+## Clés BETA du logiciel
+
+Distribution et activation du logiciel pendant la beta (clés `BETA-…`, enveloppes signées, téléchargements) :
+voir [docs/beta-keys.md](docs/beta-keys.md). Variables d'environnement : [.env.example](.env.example).
+
 ## Développement local (sans Docker)
 
 ### Backend

@@ -27,6 +27,22 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - SMTP_FROM=${SMTP_FROM:-}
       - NOTIFY_EMAIL_TO=${NOTIFY_EMAIL_TO:-beaver.eip@gmail.com}
+      # BETA software licenses (docs/beta-keys.md). Secrets: set them in .env only.
+      - BETA_KEY_PEPPER=${BETA_KEY_PEPPER:-}
+      - BETA_SIGNING_PRIVATE_KEY=${BETA_SIGNING_PRIVATE_KEY:-}
+      - BETA_SIGNING_KID=${BETA_SIGNING_KID:-}
+      - BETA_MODEL_KEYS=${BETA_MODEL_KEYS:-}
+      - BETA_DURATION_DAYS=${BETA_DURATION_DAYS:-14}
+      - BETA_REDEEM_WINDOW_DAYS=${BETA_REDEEM_WINDOW_DAYS:-30}
+      - BETA_MAX_MACHINES=${BETA_MAX_MACHINES:-2}
+      - BETA_MAX_DOWNLOADS=${BETA_MAX_DOWNLOADS:-5}
+      - BETA_CHECK_INTERVAL_SECONDS=${BETA_CHECK_INTERVAL_SECONDS:-900}
+      - BETA_DOWNLOAD_URL_TTL_SECONDS=${BETA_DOWNLOAD_URL_TTL_SECONDS:-600}
+      - BETA_PUBLIC_BASE_URL=${BETA_PUBLIC_BASE_URL:-}
+      - BETA_RELEASES_DIR=/data/beta-releases
+    volumes:
+      # Private storage for the beta binaries (never served statically).
+      - beta_releases:/data/beta-releases
     depends_on:
       mongo:
         condition: service_healthy
@@ -56,5 +72,6 @@ services:
 
 volumes:
   mongo_data:
+  beta_releases:
   caddy_data:
   caddy_config:

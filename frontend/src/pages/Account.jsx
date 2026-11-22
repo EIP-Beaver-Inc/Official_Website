@@ -15,7 +15,8 @@ import BrickPanel from '@/components/BrickPanel';
 
 const FEEDBACK_CATEGORIES = ['Interface', 'Performance', 'Précision IA', 'Documentation', 'Autre'];
 
-const DOWNLOAD_URL = '#';
+// Downloads require a BETA license key: handled by the /beta page (Logiciel tab).
+const DOWNLOAD_URL = '/beta';
 const APP_VERSION = '0.1.0-beta';
 
 const CATEGORY_COLORS = {

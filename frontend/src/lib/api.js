@@ -40,8 +40,21 @@ export async function submitDemoRequest(payload) {
 }
 
 // ---- Beta ----
+// Beta portal (website account). Not the software license: see betaLicense* below.
 export async function validateBetaKey(payload) {
-    const r = await api.post('/beta/validate', payload);
+    const r = await api.post('/beta/register', payload);
+    return r.data;
+}
+
+// ---- BETA software license (key BETA-XXXX-XXXX-XXXX-XXXX) ----
+// The key is only sent in POST bodies, never in a URL, cookie or storage.
+export async function betaLicenseInfo(key) {
+    const r = await api.post('/beta/key-info', { key });
+    return r.data;
+}
+
+export async function betaLicenseDownload(key, platform) {
+    const r = await api.post('/beta/download', { key, platform });
     return r.data;
 }
 

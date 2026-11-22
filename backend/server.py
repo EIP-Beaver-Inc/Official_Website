@@ -2,7 +2,6 @@ from fastapi import FastAPI, APIRouter, HTTPException, Depends, Header, Backgrou
 from fastapi.security import APIKeyHeader
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import json
@@ -20,6 +19,7 @@ from datetime import datetime, timezone
 from quiz_data import QUIZ, QUIZ_QUESTIONS, build_public_questions, evaluate_answers
 from defects_data import DEFECT_CLASSES, PIPELINE_STEPS, SCORING_CLASSES
 from mailer import notify_contact, notify_demo_request
+from beta_license import routes as beta_license_routes
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -31,6 +31,7 @@ db = client[os.environ['DB_NAME']]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await beta_license_routes.setup(app, db)
     yield
     client.close()
 
@@ -431,8 +432,8 @@ async def get_tutorials():
     return {"tutorials": _load_tutorials()}
 
 
-# ---- Beta access ----
-@api_router.post("/beta/validate")
+# ---- Beta portal access (website account; NOT the software BETA license, see beta_license/) ----
+@api_router.post("/beta/register")
 async def validate_beta_key(payload: BetaValidate):
     normalized = payload.key.strip().upper()
     doc = await db.beta_keys.find_one({"key": normalized}, {"_id": 0})
@@ -747,14 +748,13 @@ async def delete_beta_client(client_id: str):
 
 
 # Include router and middleware
+app.include_router(beta_license_routes.router)
 app.include_router(api_router)
 
+# Site-wide CORS, scoped out of the BETA license routes (spec 5.4).
 app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
+    beta_license_routes.ScopedCORSMiddleware,
+    origins=os.environ.get('CORS_ORIGINS', '*').split(','),
 )
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

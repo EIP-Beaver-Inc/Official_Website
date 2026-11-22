@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { validateBetaKey, betaLogin } from '@/lib/api';
 import PageHero from '@/components/PageHero';
+import BetaLicensePanel from '@/components/BetaLicensePanel';
 
 function KeyInput({ value, onChange }) {
     return (
@@ -134,13 +135,13 @@ function RegisterForm() {
 }
 
 const PERKS = [
-    { Icon: Download, title: "L'application Beaver", text: "Téléchargez la dernière version de l'application." },
+    { Icon: Download, title: "L'application Beaver", text: 'Téléchargez le logiciel avec votre clé BETA (onglet « Logiciel »).' },
     { Icon: BookOpen, title: 'Guides et tutoriels', text: 'La documentation pour installer et prendre en main Beaver.' },
     { Icon: LifeBuoy, title: 'Suivi des tickets', text: "Posez vos questions et suivez les réponses de l'équipe." },
 ];
 
 export default function Beta() {
-    const [tab, setTab] = useState('login');
+    const [tab, setTab] = useState('software');
 
     return (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
@@ -152,7 +153,7 @@ export default function Beta() {
                             Votre espace <span className="text-primary">client.</span>
                         </>
                     }
-                    subtitle="Connectez-vous avec votre clé d'accès beta pour télécharger l'application, consulter les guides et suivre vos tickets."
+                    subtitle="Téléchargez le logiciel avec votre clé BETA, ou connectez-vous à votre espace client pour consulter les guides et suivre vos tickets."
                 />
                 <ul className="mt-10 space-y-3" data-animate="fade-up">
                     {PERKS.map(({ Icon, title, text }) => (
@@ -172,8 +173,9 @@ export default function Beta() {
             <div className="lg:col-span-6 lg:sticky lg:top-32" data-animate="fade-up">
                 <div className="rounded-[2rem] border border-black/5 bg-card p-6 sm:p-8 shadow-[0_30px_70px_-40px_rgba(60,35,20,0.4)]">
                     {/* Tabs */}
-                    <div className="grid grid-cols-2 gap-1 rounded-full bg-background p-1 border border-black/5">
+                    <div className="grid grid-cols-3 gap-1 rounded-full bg-background p-1 border border-black/5">
                         {[
+                            { id: 'software', label: 'Logiciel' },
                             { id: 'login', label: 'Se connecter' },
                             { id: 'register', label: 'Première connexion' },
                         ].map(({ id, label }) => (
@@ -181,7 +183,7 @@ export default function Beta() {
                                 key={id}
                                 type="button"
                                 onClick={() => setTab(id)}
-                                className={`rounded-full py-2.5 text-sm font-medium transition-all duration-300 ${
+                                className={`rounded-full py-2.5 text-xs sm:text-sm font-medium transition-all duration-300 ${
                                     tab === id ? 'bg-primary text-primary-foreground shadow-[0_6px_18px_rgba(168,65,42,0.25)]' : 'text-muted-foreground hover:text-foreground'
                                 }`}
                             >
@@ -195,18 +197,24 @@ export default function Beta() {
                             <KeyRound className="h-5 w-5 text-primary" />
                         </span>
                         <span className="font-display font-semibold text-lg tracking-[-0.02em]">
-                            {tab === 'login' ? 'Connexion avec votre clé' : 'Activation de votre clé'}
+                            {tab === 'software' ? 'Télécharger Beaver' : tab === 'login' ? 'Connexion avec votre clé' : 'Activation de votre clé'}
                         </span>
                     </div>
 
-                    {tab === 'login' ? <LoginForm /> : <RegisterForm />}
+                    {tab === 'software' ? <BetaLicensePanel /> : tab === 'login' ? <LoginForm /> : <RegisterForm />}
                 </div>
 
                 <p className="mt-6 text-center text-sm text-muted-foreground">
                     Pas encore de clé ?{' '}
-                    <a href="/contact" className="text-primary underline underline-offset-4">
-                        Contactez-nous
-                    </a>
+                    {tab === 'software' ? (
+                        <a href="mailto:betatest.beaver@gmail.com" className="text-primary underline underline-offset-4">
+                            betatest.beaver@gmail.com
+                        </a>
+                    ) : (
+                        <a href="/contact" className="text-primary underline underline-offset-4">
+                            Contactez-nous
+                        </a>
+                    )}
                 </p>
             </div>
         </section>

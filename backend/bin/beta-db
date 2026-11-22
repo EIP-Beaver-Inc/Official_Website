@@ -1,0 +1,4 @@
+#!/bin/sh
+# Shortcut: bin/beta-db <args>  ==  python -m beta_license.cli beta-db <args>
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+exec env PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}" python -m beta_license.cli beta-db "$@"
