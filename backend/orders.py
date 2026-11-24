@@ -244,8 +244,9 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: 
                 "2. Lancez BeaverSetup sur le poste de la ligne et suivez les étapes. Aucun droit "
                 "d'administrateur n'est nécessaire. Si le poste a une carte graphique NVIDIA, laissez "
                 "cochée l'option d'accélération (connexion internet nécessaire pendant l'installation).",
-                "3. Au premier lancement, collez la clé de licence ci-dessous dans l'écran d'activation. "
-                "Elle se vérifie sans connexion internet.",
+                "3. Au premier lancement, collez la « Clé de licence » ci-dessous (le long texte qui "
+                "commence par BVR1.) dans l'écran d'activation. Elle se vérifie sans connexion internet. "
+                "La clé d'accès, plus courte, sert seulement à vous connecter à l'espace client du site.",
                 f"Votre licence est {validity}.",
             ],
             code_blocks=[
