@@ -99,8 +99,11 @@ Le site complet tourne sur **http://localhost:8001** (admin : `/admin`, mot de p
 - base MongoDB simulée en mémoire, vide à chaque lancement ;
 - les mails ne partent pas : ils sont enregistrés dans `outbox/` (fichiers `.eml`) ;
 - l'installateur servi est celui de `../Beaver/installer/dist` ;
-- les licences sont signées avec la clé de **test** du `.env` (le script refuse la clé de
-  prod). Paire de test : `.venv-dev\Scripts\python.exe backend\licensing.py generate`.
+- la configuration des tests est lue dans **`.env.test-local`** (ignoré par git), le `.env`
+  gardant la clé de prod ; sans ce fichier, c'est le `.env`. Les licences y sont signées avec une
+  clé de **test** (le script refuse la clé de prod). Paire de test :
+  `.venv-dev\Scripts\python.exe backend\licensing.py generate`, à mettre dans `.env.test-local`
+  avec `ADMIN_TOKEN` et, pour `-VraisMails`, `SMTP_USER` / `SMTP_PASSWORD`.
 
 Parcours automatique (devis → commande → livraison → mail → téléchargement → espace
 client → licence acceptée par le logiciel), le site local étant lancé :

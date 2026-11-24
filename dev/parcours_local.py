@@ -24,7 +24,8 @@ OUTBOX = SITE / "outbox"
 
 
 def _env(cle: str) -> str:
-    for ligne in (SITE / ".env").read_text(encoding="utf-8").splitlines():
+    fichier = SITE / ".env.test-local" if (SITE / ".env.test-local").exists() else SITE / ".env"
+    for ligne in fichier.read_text(encoding="utf-8").splitlines():
         k, _, v = ligne.strip().partition("=")
         if k == cle:
             return v.strip()

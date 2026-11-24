@@ -3,7 +3,8 @@
 - Base : MongoDB simulée en mémoire (mongomock-motor), vide à chaque lancement.
 - Mails : enregistrés dans outbox/ (fichiers .eml à ouvrir avec Outlook ou
   Thunderbird), jamais envoyés.
-- Licences : signées avec la clé de TEST du .env ; le script refuse la clé de prod.
+- Licences : signées avec la clé de TEST de .env.test-local (sinon du .env) ; le
+  script refuse la clé de prod, que le .env garde pour la production.
 - Versions : l'installateur servi est celui de ../Beaver/installer/dist.
 - Le frontend construit (frontend/dist) est servi par le même serveur, sur
   http://localhost:8001 : les liens des mails (espace client, téléchargement)
@@ -25,6 +26,9 @@ BEAVER = Path(os.environ.get("BEAVER_REPO", SITE.parent / "Beaver")).resolve()
 OUTBOX = SITE / "outbox"
 PORT = int(os.environ.get("PORT", "8001"))
 VRAIS_MAILS = "--vrais-mails" in sys.argv   # dev\run_local.ps1 -VraisMails
+# La configuration des tests locaux : .env.test-local quand il existe (le .env
+# garde alors la clé de prod sans qu'on y touche), sinon le .env.
+ENV_FILE = SITE / ".env.test-local" if (SITE / ".env.test-local").exists() else SITE / ".env"
 
 
 def _lire_env(fichier: Path) -> dict[str, str]:
@@ -47,9 +51,9 @@ def _cle_publique_de_prod() -> str | None:
 
 
 def configurer() -> dict[str, str]:
-    env = _lire_env(SITE / ".env")
+    env = _lire_env(ENV_FILE)
     if not env.get("LICENCE_PRIVATE_KEY"):
-        sys.exit("LICENCE_PRIVATE_KEY manque dans .env : génère une paire de TEST avec\n"
+        sys.exit(f"LICENCE_PRIVATE_KEY manque dans {ENV_FILE.name} : génère une paire de TEST avec\n"
                  "  .venv-dev\\Scripts\\python.exe backend\\licensing.py generate")
     os.environ.update({
         "LICENCE_PRIVATE_KEY": env["LICENCE_PRIVATE_KEY"],
@@ -64,7 +68,7 @@ def configurer() -> dict[str, str]:
     if VRAIS_MAILS:
         # Envoi réel par le SMTP du .env (Gmail Beaver), une copie reste dans outbox/.
         if not (env.get("SMTP_USER") and env.get("SMTP_PASSWORD")):
-            sys.exit("-VraisMails : SMTP_USER et SMTP_PASSWORD manquent dans .env\n"
+            sys.exit(f"-VraisMails : SMTP_USER et SMTP_PASSWORD manquent dans {ENV_FILE.name}\n"
                      "(mot de passe d'application Gmail, voir la section « Envoi des emails » du README).")
         for cle in ("SMTP_USER", "SMTP_PASSWORD", "SMTP_HOST", "SMTP_PORT", "SMTP_FROM", "NOTIFY_EMAIL_TO"):
             if env.get(cle):
@@ -78,9 +82,9 @@ def configurer() -> dict[str, str]:
 
     publique = licensing.public_key_b64()
     if publique == _cle_publique_de_prod():
-        sys.exit("ARRÊT : la LICENCE_PRIVATE_KEY du .env est la clé de PROD.\n"
-                 "Pour les tests, génère une paire de test (backend\\licensing.py generate)\n"
-                 "et garde la clé de prod uniquement sur le serveur et dans ta sauvegarde.")
+        sys.exit(f"ARRÊT : la LICENCE_PRIVATE_KEY de {ENV_FILE.name} est la clé de PROD.\n"
+                 "Pour les tests, mets une paire de test (backend\\licensing.py generate)\n"
+                 "dans .env.test-local : le .env garde la clé de prod.")
     return {"publique": publique, "admin": os.environ["ADMIN_TOKEN"]}
 
 
