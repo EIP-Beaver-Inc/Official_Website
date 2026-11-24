@@ -25,6 +25,7 @@ BACKEND = SITE / "backend"
 BEAVER = Path(os.environ.get("BEAVER_REPO", SITE.parent / "Beaver")).resolve()
 OUTBOX = SITE / "outbox"
 PORT = int(os.environ.get("PORT", "8001"))
+VRAIS_MAILS = "--vrais-mails" in sys.argv   # dev\run_local.ps1 -VraisMails
 
 
 def _lire_env(fichier: Path) -> dict[str, str]:
@@ -60,11 +61,19 @@ def configurer() -> dict[str, str]:
         "SITE_URL": f"http://localhost:{PORT}",
         "RELEASES_DIR": str(BEAVER / "installer" / "dist"),
         "DOWNLOAD_LINK_DAYS": env.get("DOWNLOAD_LINK_DAYS", "30"),
-        # Faux identifiants : le mailer se croit configuré, l'envoi va dans outbox/.
-        "SMTP_USER": "beaver.local@example.com",
-        "SMTP_PASSWORD": "local",
-        "NOTIFY_EMAIL_TO": "beaver.local@example.com",
     })
+    if VRAIS_MAILS:
+        # Envoi réel par le SMTP du .env (Gmail Beaver), une copie reste dans outbox/.
+        if not (env.get("SMTP_USER") and env.get("SMTP_PASSWORD")):
+            sys.exit("-VraisMails : SMTP_USER et SMTP_PASSWORD manquent dans .env\n"
+                     "(mot de passe d'application Gmail, voir la section « Envoi des emails » du README).")
+        for cle in ("SMTP_USER", "SMTP_PASSWORD", "SMTP_HOST", "SMTP_PORT", "SMTP_FROM", "NOTIFY_EMAIL_TO"):
+            if env.get(cle):
+                os.environ[cle] = env[cle]
+    else:
+        # Faux identifiants : le mailer se croit configuré, l'envoi va dans outbox/.
+        os.environ.update({"SMTP_USER": "beaver.local@example.com", "SMTP_PASSWORD": "local",
+                           "NOTIFY_EMAIL_TO": "beaver.local@example.com"})
     sys.path.insert(0, str(BACKEND))
     import licensing
 
@@ -86,11 +95,17 @@ def brancher_memoire_et_outbox() -> None:
     import mailer
     OUTBOX.mkdir(exist_ok=True)
 
-    def vers_outbox(_cfg, msg) -> None:
+    envoi_reel = mailer._send_sync
+
+    def vers_outbox(cfg, msg) -> None:
         sujet = re.sub(r"[^\w\- ]+", "", str(msg["Subject"]))[:60].strip() or "mail"
         nom = f"{time.strftime('%Y%m%d-%H%M%S')}-{sujet}.eml"
         (OUTBOX / nom).write_bytes(bytes(msg))
-        print(f"  [mail] {msg['To']} : {msg['Subject']}  ->  outbox\\{nom}", flush=True)
+        if VRAIS_MAILS:
+            envoi_reel(cfg, msg)
+            print(f"  [mail ENVOYÉ] {msg['To']} : {msg['Subject']}", flush=True)
+        else:
+            print(f"  [mail] {msg['To']} : {msg['Subject']}  ->  outbox\\{nom}", flush=True)
 
     mailer._send_sync = vers_outbox
 
@@ -125,7 +140,7 @@ def main() -> None:
  Site BEAVER en local (base en mémoire, vide à chaque lancement)
    Site        : http://localhost:{PORT}
    Admin       : http://localhost:{PORT}/admin   mot de passe : {infos['admin']}
-   Mails       : {OUTBOX}
+   Mails       : {"ENVOYÉS pour de vrai (copie dans " + str(OUTBOX) + ")" if VRAIS_MAILS else OUTBOX}
    Installateur: {versions[-1] if versions else 'AUCUN dans ' + str(dist)}
 
  Logiciel installé, avec la clé de TEST (dans un PowerShell) :

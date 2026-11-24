@@ -2,7 +2,8 @@
 # sans envoi de mail. Voir dev\run_local.py.
 #   powershell -ExecutionPolicy Bypass -File dev\run_local.ps1
 #   ... -Rebuild    reconstruit le frontend (après une modification)
-param([switch]$Rebuild)
+#   ... -VraisMails envoie les mails pour de vrai (SMTP du .env), au lieu de outbox\ seulement
+param([switch]$Rebuild, [switch]$VraisMails)
 $ErrorActionPreference = "Stop"
 $Site = Split-Path $PSScriptRoot -Parent
 Set-Location $Site
@@ -29,4 +30,4 @@ if ($Rebuild -or -not (Test-Path "frontend\dist\index.html")) {
 }
 
 # 3. Le serveur
-& $py dev\run_local.py
+if ($VraisMails) { & $py dev\run_local.py --vrais-mails } else { & $py dev\run_local.py }
