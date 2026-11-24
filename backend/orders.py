@@ -35,7 +35,7 @@ from typing import Awaitable, Callable, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 import licensing
 from mailer import send_customer_email
@@ -92,6 +92,18 @@ class QuoteIn(BaseModel):
     # limite), à compter de la livraison, et nombre de postes.
     licence_months: Optional[int] = Field(default=12, ge=1, le=120)
     seats: int = Field(default=1, ge=1, le=100)
+
+    @field_validator("amount_ht", mode="before")
+    @classmethod
+    def _amount_as_typed(cls, value):
+        """« 4 500,50 € » tel que saisi : espaces, symbole et virgule acceptés."""
+        if isinstance(value, str):
+            cleaned = re.sub(r"[\s\u00a0\u202f€]|HT", "", value, flags=re.I).replace(",", ".")
+            try:
+                return float(cleaned)
+            except ValueError:
+                return value
+        return value
 
 
 DEFAULT_TERMS = {"licence_months": 12, "seats": 1}   # dossier commandé sans devis

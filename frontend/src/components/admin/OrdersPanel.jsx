@@ -26,7 +26,22 @@ const btn = 'inline-flex items-center gap-1.5 rounded-full px-3 h-8 text-xs font
 const primaryBtn = `${btn} bg-[hsl(var(--primary))] hover:bg-[hsl(14_66%_38%)] text-[hsl(var(--primary-foreground))]`;
 const ghostBtn = `${btn} border border-black/10 hover:bg-[hsl(var(--background))]`;
 
-const errorText = (err, fallback) => err?.response?.data?.detail || fallback;
+// Le message du serveur ; une erreur de validation (422) arrive en liste de champs.
+const FIELD_NAMES = { amount_ht: 'Montant', details: 'Détail', validity_days: 'Validité', seats: 'Postes',
+    licence_months: 'Durée de la licence', licence_expires: 'Fin de la licence' };
+const errorText = (err, fallback) => {
+    const detail = err?.response?.data?.detail;
+    if (Array.isArray(detail)) {
+        return detail.map((d) => `${FIELD_NAMES[d.loc?.[d.loc.length - 1]] || d.loc?.join('.')} : valeur invalide`).join(' · ');
+    }
+    return typeof detail === 'string' && detail ? detail : fallback;
+};
+
+// « 4 500 », « 4500,50 € », « 4 500 € HT » -> 4500.5 ; NaN si ce n'est pas un montant.
+const parseAmount = (text) => {
+    const cleaned = String(text).replace(/[\s\u00a0\u202f€]|HT/gi, '').replace(',', '.');
+    return cleaned && /^\d+(\.\d+)?$/.test(cleaned) ? Number(cleaned) : NaN;
+};
 const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR') : '-');
 const oneYearFromNow = () => {
     const d = new Date();
@@ -64,10 +79,15 @@ function QuoteModal({ request, onClose, onDone }) {
 
     const submit = async (e) => {
         e.preventDefault();
+        const amount = parseAmount(form.amount_ht);
+        if (!(amount > 0)) {
+            toast.error('Montant invalide : saisissez un nombre, par exemple 4500 ou 4 500,50.');
+            return;
+        }
         setBusy(true);
         try {
             const r = await adminSendQuote(request.id, {
-                amount_ht: Number(String(form.amount_ht).replace(',', '.')),
+                amount_ht: amount,
                 details: form.details,
                 validity_days: Number(form.validity_days) || 30,
                 licence_months: form.licence_months ? Number(form.licence_months) : null,
