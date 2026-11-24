@@ -11,9 +11,10 @@ et avance ainsi :
   fait dans la boîte Beaver, qui reçoit une copie de chaque envoi).
 - commande : l'équipe a reçu l'accord du client. La livraison part aussitôt,
   toute seule, avec la durée de licence et le nombre de postes du devis.
-- livre : le site émet la licence signée (licensing.py), crée la clé d'accès
-  à l'espace client (le même mécanisme que les clés beta) et un lien de
-  téléchargement de l'installateur, puis envoie le tout au client.
+- livre : le site émet la licence signée (licensing.py), ouvre l'espace client
+  du client et crée un lien de téléchargement de l'installateur, puis envoie le
+  tout au client. Une seule clé : la licence (BVR1....) active le logiciel et
+  connecte aussi à l'espace client.
   Si la livraison automatique échoue (pas d'installateur publié, clé de
   signature absente), le dossier reste « commande » avec la raison, et le
   bouton « Livrer » la relance.
@@ -29,6 +30,7 @@ import logging
 import os
 import re
 import secrets
+import uuid
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Awaitable, Callable, Optional
@@ -139,8 +141,8 @@ class DeliverIn(BaseModel):
     customer: Optional[str] = Field(default=None, max_length=200)
 
 
-def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: Callable[..., Awaitable[dict]],
-                 new_access_key: Callable[[], str]) -> APIRouter:
+def build_router(db, require_admin: Callable[..., Awaitable[None]],
+                 get_client: Callable[..., Awaitable[dict]]) -> APIRouter:
     router = APIRouter()
     admin = [Depends(require_admin)]
 
@@ -240,8 +242,10 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: 
             "status": "devis_envoye", "quote": quote, "updated_at": _now_iso()}})
         return {"success": True, "status": "devis_envoye", "email_status": email_status}
 
-    async def send_delivery(doc: dict, licence_key: str, licence_expires: Optional[str],
-                            access_key: str, link: dict) -> str:
+    async def send_delivery(doc: dict, licence_key: str, licence_expires: Optional[str], link: dict,
+                            access_key: Optional[str] = None) -> str:
+        """`access_key` : seulement pour une commande livrée avant la clé unique,
+        dont l'espace client s'ouvre encore avec son ancienne clé d'accès."""
         validity = ("sans limite de durée" if not licence_expires
                     else f"valable jusqu'au {date.fromisoformat(licence_expires):%d/%m/%Y}")
         return await send_customer_email(
@@ -256,21 +260,18 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: 
                 "2. Lancez BeaverSetup sur le poste de la ligne et suivez les étapes. Aucun droit "
                 "d'administrateur n'est nécessaire. Si le poste a une carte graphique NVIDIA, laissez "
                 "cochée l'option d'accélération (connexion internet nécessaire pendant l'installation).",
-                "3. Au premier lancement, collez la « Clé de licence » ci-dessous (le long texte qui "
-                "commence par BVR1.) dans l'écran d'activation. Elle se vérifie sans connexion internet. "
-                "La clé d'accès, plus courte, sert seulement à vous connecter à l'espace client du site.",
+                "3. Au premier lancement, collez votre clé de licence ci-dessous (le texte qui commence "
+                "par BVR1.) dans l'écran d'activation. Elle se vérifie sans connexion internet.",
                 f"Votre licence est {validity}.",
             ],
-            code_blocks=[
-                ("Clé de licence (à copier en entier)", licence_key),
-                ("Clé d'accès à votre espace client", access_key),
-            ],
+            code_blocks=[("Votre clé de licence (à copier en entier)", licence_key)]
+            + ([("Clé d'accès à votre espace client", access_key)]
+               if access_key and access_key != licence_key else []),
             button=(f"Télécharger Beaver {link['version']}", link["url"]),
             closing=[
-                f"Votre espace client ({site_url()}/beta) donne accès aux guides, au "
-                "téléchargement de l'installateur et au suivi de vos demandes. À la première "
-                "connexion, choisissez « Première connexion » et saisissez la clé d'accès ci-dessus.",
-                "Conservez ce mail : la clé de licence vous sera demandée pour réinstaller Beaver.",
+                f"La même clé vous connecte à votre espace client ({site_url()}/beta) : guides, "
+                "téléchargement de l'installateur et suivi de vos demandes.",
+                "Conservez ce mail : votre clé de licence vous sera demandée pour réinstaller Beaver.",
             ],
         )
 
@@ -295,20 +296,27 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: 
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         link = await new_download_link({"request_id": request_id})   # 503 sans installateur : rien n'est créé
-        access_key = new_access_key()
+        # L'espace client, ouvert d'office avec ce que la commande dit du client :
+        # la licence est sa clé de connexion, sans « première connexion » à faire.
+        access_key = licence.key
         await db.beta_keys.insert_one({
-            "id": secrets.token_hex(16), "key": access_key, "status": "unused",
+            "id": secrets.token_hex(16), "key": access_key, "status": "active",
             "company": doc["entreprise"], "notes": f"Commande {request_id}",
-            "created_at": _now_iso(), "expires_at": None, "used_at": None,
+            "created_at": _now_iso(), "expires_at": None, "used_at": _now_iso(),
             "request_id": request_id, "licence_id": licence.id, "licence_key": licence.key,
             "licence_expires": licence.expires, "licence_seats": licence.seats,
+        })
+        await db.beta_clients.insert_one({
+            "id": str(uuid.uuid4()), "key": access_key, "company": doc["entreprise"],
+            "contact_name": doc["nom"], "email": doc["email"], "phone": doc.get("telephone"),
+            "registered_at": _now_iso(), "session_token": str(uuid.uuid4()),
         })
         record = {"id": licence.id, "key": licence.key, "customer": licence.customer,
                   "email": licence.email, "issued": licence.issued, "expires": licence.expires,
                   "seats": licence.seats, "request_id": request_id, "access_key": access_key,
                   "created_at": _now_iso()}
         await db.licences.insert_one(dict(record))
-        email_status = await send_delivery(doc, licence.key, licence.expires, access_key, link)
+        email_status = await send_delivery(doc, licence.key, licence.expires, link)
         await db.demo_requests.update_one({"id": request_id}, {"$unset": {"delivery_error": ""}, "$set": {
             "status": "livre", "updated_at": _now_iso(),
             "delivery": {"licence_id": licence.id, "licence_expires": licence.expires,
@@ -327,7 +335,7 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: 
         if not lic:
             raise HTTPException(status_code=404, detail="Licence introuvable pour ce dossier.")
         link = await new_download_link({"request_id": request_id})
-        email_status = await send_delivery(doc, lic["key"], lic.get("expires"), lic["access_key"], link)
+        email_status = await send_delivery(doc, lic["key"], lic.get("expires"), link, lic.get("access_key"))
         await db.demo_requests.update_one({"id": request_id}, {"$set": {
             "delivery.email_status": email_status, "delivery.resent_at": _now_iso(), "updated_at": _now_iso()}})
         return {"success": True, "email_status": email_status, "download": link}

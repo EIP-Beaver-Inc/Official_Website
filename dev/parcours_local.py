@@ -87,8 +87,10 @@ def main() -> None:
     mail = texte(dernier_mail(debut, client_mail))
     assert livre["licence_key"] in mail and livre["access_key"] in mail
     lien = re.search(r"https?://\S+/api/download/[\w-]+", mail).group(0)
-    etape(f"commande reçue -> livrée automatiquement : licence {livre['licence_key'][:12]}..., "
-          "clé d'accès et lien envoyés au client")
+    assert mail.count(livre["licence_key"]) == 1, "la licence, une fois"
+    assert not re.search(r"\b[A-Z0-9]{4}(-[A-Z0-9]{4}){3}\b", mail), "aucune autre clé dans le mail"
+    etape(f"commande reçue -> livrée automatiquement : licence {livre['licence_key'][:12]}... "
+          "(une seule clé) et lien envoyés au client")
 
     # 4. Le lien du mail télécharge l'installateur
     with c.stream("GET", lien.replace("http://localhost:8001", URL)) as d:
@@ -99,15 +101,14 @@ def main() -> None:
     assert taille == attendu, (taille, attendu)
     etape(f"téléchargement : {nom} ({taille // 2**20} Mo), identique au fichier publié")
 
-    # 5. L'espace client avec la clé d'accès du mail
-    r = c.post("/api/beta/validate", json={"key": livre["access_key"], "company": "Scierie Test 日本",
-                                            "contact_name": "Élodie Łukasz", "email": client_mail})
+    # 5. L'espace client, avec la même clé : la licence
+    r = c.post("/api/beta/login", json={"key": livre["licence_key"]})
     r.raise_for_status()
     auth = {"Authorization": f"Bearer {r.json()['session_token']}"}
     lic = c.get("/api/beta/licence", headers=auth).json()["licence"]
     assert lic["key"] == livre["licence_key"]
     assert "/api/download/" in c.get("/api/beta/download", headers=auth).json()["url"]
-    etape("espace client : licence et téléchargement disponibles")
+    etape("espace client ouvert avec la licence : licence et téléchargement disponibles")
 
     # 6. Le logiciel accepte cette licence (son propre code, clé publique de test)
     os.environ["BEAVER_LICENCE_PUBLIC_KEY"] = _env("BEAVER_LICENCE_PUBLIC_KEY") or ""

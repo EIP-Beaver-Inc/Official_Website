@@ -51,9 +51,9 @@ def test_delivery_sends_licence_access_key_and_download_link(app_client, request
 
     mail = mails[-1]
     blocks = dict(mail["code_blocks"])
-    licence_key = blocks["Clé de licence (à copier en entier)"]
-    access_key = blocks["Clé d'accès à votre espace client"]
-    assert licence_key == out["licence_key"] and access_key == out["access_key"]
+    assert list(blocks) == ["Votre clé de licence (à copier en entier)"], "une seule clé dans le mail"
+    licence_key = blocks["Votre clé de licence (à copier en entier)"]
+    assert licence_key == out["licence_key"] == out["access_key"]
     assert mail["button"][1].startswith("https://site.test/api/download/")
     assert "jusqu'au 30/11/2027" in " ".join(mail["paragraphs"])
 
@@ -110,7 +110,7 @@ def test_a_delivered_order_is_not_delivered_twice_but_can_be_resent(app_client, 
     assert again.status_code == 409
     resent = app_client.post(f"/api/admin/requests/{request_id}/resend", headers=app_client.admin)
     assert resent.status_code == 200
-    assert dict(mails[-1]["code_blocks"])["Clé de licence (à copier en entier)"] == first["licence_key"]
+    assert dict(mails[-1]["code_blocks"])["Votre clé de licence (à copier en entier)"] == first["licence_key"]
     assert len(app_client.get("/api/admin/licences", headers=app_client.admin).json()) == 1
 
 
@@ -160,8 +160,7 @@ def test_confirming_the_order_delivers_it_with_the_quote_terms(app_client, reque
     mail = mails[-1]
     assert mail["to"] == "marie@lac.fr" and mail["subject"] == "Votre logiciel Beaver est prêt"
     blocks = dict(mail["code_blocks"])
-    assert blocks["Clé de licence (à copier en entier)"] == out["licence_key"]
-    assert blocks["Clé d'accès à votre espace client"] == out["access_key"]
+    assert blocks == {"Votre clé de licence (à copier en entier)": out["licence_key"]}
     assert mail["button"][1].startswith("https://site.test/api/download/")
     expires = add_months(date.today(), 12)
     assert f"jusqu'au {expires:%d/%m/%Y}" in " ".join(mail["paragraphs"])
@@ -202,3 +201,35 @@ def test_add_months_keeps_the_day_or_takes_the_last_one():
     assert add_months(date(2026, 11, 24), 12) == date(2027, 11, 24)
     assert add_months(date(2026, 1, 31), 1) == date(2026, 2, 28)
     assert add_months(date(2027, 12, 15), 1) == date(2028, 1, 15)
+
+
+
+# ---- Une seule clé : la licence ouvre aussi l'espace client ----
+
+def test_the_licence_opens_the_customer_space_without_registering(app_client, request_id, mails):
+    release(app_client)
+    out = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={}).json()
+    licence = out["licence_key"]
+    # Collée depuis un mail : libellé copié avec, retours à la ligne, espace insécable invisible.
+    pasted = "Votre clé de licence : " + licence[:50] + "\n" + licence[50:] + "​ "
+    r = app_client.post("/api/beta/login", json={"key": pasted})
+    assert r.status_code == 200, r.text
+    auth = {"Authorization": f"Bearer {r.json()['session_token']}"}
+    me = app_client.get("/api/beta/me", headers=auth).json()
+    assert me["company"] == "Scierie du Lac" and me["contact_name"] == "Marie Martin" and me["email"] == "marie@lac.fr"
+    assert app_client.get("/api/beta/licence", headers=auth).json()["licence"]["key"] == licence
+    # « Première connexion » avec la licence : connecte aussi, sans créer de second compte.
+    r = app_client.post("/api/beta/validate", json={"key": licence, "company": "x", "contact_name": "y",
+                                                     "email": "z@z.fr"})
+    assert r.status_code == 200, r.text
+    assert len(app_client.db.beta_clients.docs) == 1
+
+
+def test_an_old_access_key_still_works(app_client):
+    # Une clé d'accès livrée avant la clé unique (ou une clé beta), en minuscules à la saisie.
+    app_client.db.beta_keys.docs.append({"id": "k1", "key": "ABCD-EFGH-IJKL-MNOP", "status": "unused",
+                                         "company": "Ancienne", "expires_at": None, "used_at": None})
+    r = app_client.post("/api/beta/validate", json={"key": "abcd-efgh-ijkl-mnop", "company": "Ancienne",
+                                                     "contact_name": "A", "email": "a@a.fr"})
+    assert r.status_code == 200, r.text
+    assert app_client.post("/api/beta/login", json={"key": " abcd-efgh-ijkl-mnop "}).status_code == 200

@@ -153,8 +153,7 @@ def app_client(monkeypatch, tmp_path, signing_key, mails):
         if not route.path.startswith(("/api/admin/requests", "/api/admin/releases", "/api/admin/licences",
                                       "/api/beta/download", "/api/beta/licence", "/api/download")):
             router.routes.append(route)
-    router.include_router(orders.build_router(db, server.require_admin, server._get_client,
-                                              server._generate_beta_key))
+    router.include_router(orders.build_router(db, server.require_admin, server._get_client))
     app.include_router(router)
 
     releases = tmp_path / "releases"

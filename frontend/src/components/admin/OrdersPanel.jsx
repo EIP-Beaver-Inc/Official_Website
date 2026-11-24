@@ -182,17 +182,13 @@ function DeliverModal({ request, release, onClose, onDone }) {
             <Modal title="Commande livrée" onClose={onClose}>
                 <p className="text-sm mb-4">
                     {result.email_status === 'sent'
-                        ? `Licence, clé d'accès et lien de téléchargement envoyés à ${request.email}.`
+                        ? `Licence (qui ouvre aussi l'espace client) et lien de téléchargement envoyés à ${request.email}.`
                         : `Le mail n'est pas parti (${result.email_status}) : transmettez ces éléments au client.`}
                 </p>
                 <div className="space-y-3 text-xs">
                     <div>
                         <div className="label-caps mb-1">Licence {result.licence_id}</div>
                         <div className="font-mono break-all rounded-lg border border-black/10 bg-[hsl(var(--card))] p-2">{result.licence_key}</div>
-                    </div>
-                    <div>
-                        <div className="label-caps mb-1">Clé d'accès à l'espace client</div>
-                        <div className="font-mono rounded-lg border border-black/10 bg-[hsl(var(--card))] p-2">{result.access_key}</div>
                     </div>
                     <div>
                         <div className="label-caps mb-1">Téléchargement (Beaver {result.download.version})</div>
@@ -286,13 +282,13 @@ export default function OrdersPanel() {
         }
     };
 
-    // « Commande reçue » : le serveur livre aussitôt (licence du devis, clé d'accès, lien).
+    // « Commande reçue » : le serveur livre aussitôt (licence du devis, qui ouvre aussi l'espace client, et lien).
     const confirmOrder = async (r) => {
         const terms = r.quote ? licenceTerms(r.quote.licence_months, r.quote.seats) : 'licence 1 an, 1 poste';
         if (!window.confirm(`Commande reçue de ${r.entreprise} ?
 
 ${r.email} recevra aussitôt par mail le lien de `
-            + `téléchargement, sa licence (${terms}) et sa clé d'accès à l'espace client.`)) return;
+            + `téléchargement et sa licence (${terms}), qui lui ouvre aussi son espace client.`)) return;
         setBusyId(r.id);
         try {
             const out = await adminSetRequestStatus(r.id, 'commande');
@@ -301,7 +297,7 @@ ${r.email} recevra aussitôt par mail le lien de `
             } else if (out.email_status !== 'sent') {
                 toast.warning(`Commande livrée, mais le mail n'est pas parti (${out.email_status}) : renvoyez-le.`);
             } else {
-                toast.success(`Commande livrée : logiciel, licence et clé d'accès envoyés à ${r.email}.`);
+                toast.success(`Commande livrée : logiciel et licence envoyés à ${r.email}.`);
             }
             refresh();
         } catch (err) {

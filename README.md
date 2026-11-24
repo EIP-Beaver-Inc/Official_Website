@@ -59,8 +59,10 @@ Le parcours client se pilote depuis l'onglet **Commandes** de la page admin :
    commander (copie de chaque envoi dans la boîte Beaver).
 3. **Commande reçue : livrer** : à cliquer quand le client a donné son accord. La livraison part
    **automatiquement** : le site émet la **licence signée** aux conditions du devis (la durée court
-   à partir de ce jour), crée la **clé d'accès à l'espace client** et envoie au client un mail avec
-   le lien de téléchargement de l'installateur, la licence et la clé d'accès.
+   à partir de ce jour), ouvre son **espace client** et lui envoie un mail avec le lien de
+   téléchargement de l'installateur et sa licence. **Une seule clé** : la licence (`BVR1.…`) active
+   le logiciel et connecte aussi à l'espace client (menu « Espace client », `/beta`). Les anciennes
+   clés d'accès (`XXXX-XXXX-XXXX-XXXX`, bêta-testeurs) restent acceptées.
 4. Si la livraison n'a pas pu partir (aucun installateur publié, clé de signature absente), le
    dossier reste « Commande reçue » avec la raison ; une fois corrigé, **Livrer** la relance (et
    permet aussi des conditions particulières). « Renvoyer le mail » refait un envoi avec un lien neuf.
