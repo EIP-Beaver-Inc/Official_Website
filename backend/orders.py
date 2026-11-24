@@ -31,9 +31,9 @@ import os
 import re
 import secrets
 import uuid
-from datetime import date, datetime, timedelta, timezone
+from collections.abc import Awaitable, Callable
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
-from typing import Awaitable, Callable, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
@@ -49,7 +49,7 @@ RELEASE_PATTERN = re.compile(r"^BeaverSetup-(\d+)\.(\d+)\.(\d+)\.exe$")
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def site_url() -> str:
@@ -67,7 +67,7 @@ def link_days() -> int:
         return 30
 
 
-def latest_release() -> Optional[Path]:
+def latest_release() -> Path | None:
     """Le BeaverSetup-x.y.z.exe de plus haute version, ou None."""
     folder = releases_dir()
     if not folder.is_dir():
@@ -92,7 +92,7 @@ class QuoteIn(BaseModel):
     validity_days: int = Field(default=30, ge=1, le=365)
     # Ce que la livraison émettra : durée de la licence en mois (None : sans
     # limite), à compter de la livraison, et nombre de postes.
-    licence_months: Optional[int] = Field(default=12, ge=1, le=120)
+    licence_months: int | None = Field(default=12, ge=1, le=120)
     seats: int = Field(default=1, ge=1, le=100)
 
     @field_validator("amount_ht", mode="before")
@@ -100,7 +100,7 @@ class QuoteIn(BaseModel):
     def _amount_as_typed(cls, value):
         """« 4 500,50 € » tel que saisi : espaces, symbole et virgule acceptés."""
         if isinstance(value, str):
-            cleaned = re.sub(r"[\s\u00a0\u202f€]|HT", "", value, flags=re.I).replace(",", ".")
+            cleaned = re.sub(r"[\s\u00a0\u202f€]|HT", "", value, flags=re.IGNORECASE).replace(",", ".")
             try:
                 return float(cleaned)
             except ValueError:
@@ -123,7 +123,7 @@ def add_months(start: date, months: int) -> date:
     raise ValueError(start)
 
 
-def licence_terms(months: Optional[int], seats: int) -> str:
+def licence_terms(months: int | None, seats: int) -> str:
     duration = "sans limite de durée" if not months else (
         f"{months // 12} an{'s' if months >= 24 else ''}" if months % 12 == 0 else f"{months} mois")
     return f"{duration}, {seats} poste{'s' if seats > 1 else ''}"
@@ -135,10 +135,10 @@ class StatusIn(BaseModel):
 
 class DeliverIn(BaseModel):
     # None : licence sans limite de durée.
-    licence_expires: Optional[date] = None
+    licence_expires: date | None = None
     seats: int = Field(default=1, ge=1, le=100)
     # Nom inscrit dans la licence (affiché par le logiciel) ; par défaut l'entreprise.
-    customer: Optional[str] = Field(default=None, max_length=200)
+    customer: str | None = Field(default=None, max_length=200)
 
 
 def build_router(db, require_admin: Callable[..., Awaitable[None]],
@@ -160,7 +160,7 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
             raise HTTPException(status_code=503,
                                 detail="Aucun installateur n'est disponible pour le moment. Contactez Beaver.")
         token = secrets.token_urlsafe(32)
-        expires = datetime.now(timezone.utc) + timedelta(days=link_days())
+        expires = datetime.now(UTC) + timedelta(days=link_days())
         await db.downloads.insert_one({
             "token": token, **owner, "file": release.name, "created_at": _now_iso(),
             "expires_at": expires.isoformat(), "count": 0,
@@ -226,15 +226,15 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
             f"Votre devis Beaver — {doc['entreprise']}",
             f"Bonjour {doc['nom']},",
             [
-                "Merci pour votre intérêt pour Beaver. Voici notre proposition pour "
-                f"{doc['entreprise']}.",
+                ("Merci pour votre intérêt pour Beaver. Voici notre proposition pour "
+                f"{doc['entreprise']}."),
                 f"Montant : {amount} € HT.",
                 f"Licence : {licence_terms(payload.licence_months, payload.seats)}.",
                 payload.details,
                 f"Ce devis est valable jusqu'au {until:%d/%m/%Y}.",
-                "Pour commander, ou pour toute question, répondez simplement à ce mail. Dès "
+                ("Pour commander, ou pour toute question, répondez simplement à ce mail. Dès "
                 "votre commande confirmée, vous recevez par mail le logiciel, sa licence et "
-                "l'accès à votre espace client.",
+                "l'accès à votre espace client."),
             ],
         )
         quote["email_status"] = email_status
@@ -242,8 +242,8 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
             "status": "devis_envoye", "quote": quote, "updated_at": _now_iso()}})
         return {"success": True, "status": "devis_envoye", "email_status": email_status}
 
-    async def send_delivery(doc: dict, licence_key: str, licence_expires: Optional[str], link: dict,
-                            access_key: Optional[str] = None) -> str:
+    async def send_delivery(doc: dict, licence_key: str, licence_expires: str | None, link: dict,
+                            access_key: str | None = None) -> str:
         """`access_key` : seulement pour une commande livrée avant la clé unique,
         dont l'espace client s'ouvre encore avec son ancienne clé d'accès."""
         validity = ("sans limite de durée" if not licence_expires
@@ -253,15 +253,15 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
             "Votre logiciel Beaver est prêt",
             f"Bonjour {doc['nom']},",
             [
-                f"Votre commande est confirmée : voici de quoi installer et activer Beaver chez "
-                f"{doc['entreprise']}.",
-                "1. Téléchargez l'installateur avec le bouton ci-dessous (lien valable "
-                f"{link_days()} jours ; vous pourrez en obtenir un nouveau depuis votre espace client).",
-                "2. Lancez BeaverSetup sur le poste de la ligne et suivez les étapes. Aucun droit "
+                (f"Votre commande est confirmée : voici de quoi installer et activer Beaver chez "
+                f"{doc['entreprise']}."),
+                ("1. Téléchargez l'installateur avec le bouton ci-dessous (lien valable "
+                f"{link_days()} jours ; vous pourrez en obtenir un nouveau depuis votre espace client)."),
+                ("2. Lancez BeaverSetup sur le poste de la ligne et suivez les étapes. Aucun droit "
                 "d'administrateur n'est nécessaire. Si le poste a une carte graphique NVIDIA, laissez "
-                "cochée l'option d'accélération (connexion internet nécessaire pendant l'installation).",
-                "3. Au premier lancement, collez votre clé de licence ci-dessous (le texte qui commence "
-                "par BVR1.) dans l'écran d'activation. Elle se vérifie sans connexion internet.",
+                "cochée l'option d'accélération (connexion internet nécessaire pendant l'installation)."),
+                ("3. Au premier lancement, collez votre clé de licence ci-dessous (le texte qui commence "
+                "par BVR1.) dans l'écran d'activation. Elle se vérifie sans connexion internet."),
                 f"Votre licence est {validity}.",
             ],
             code_blocks=[("Votre clé de licence (à copier en entier)", licence_key)]
@@ -269,8 +269,8 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
                if access_key and access_key != licence_key else []),
             button=(f"Télécharger Beaver {link['version']}", link["url"]),
             closing=[
-                f"La même clé vous connecte à votre espace client ({site_url()}/beta) : guides, "
-                "téléchargement de l'installateur et suivi de vos demandes.",
+                (f"La même clé vous connecte à votre espace client ({site_url()}/beta) : guides, "
+                "téléchargement de l'installateur et suivi de vos demandes."),
                 "Conservez ce mail : votre clé de licence vous sera demandée pour réinstaller Beaver.",
             ],
         )
@@ -281,8 +281,8 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
         doc = await find_request(request_id)
         return await deliver_order(doc, payload.licence_expires, payload.seats, payload.customer)
 
-    async def deliver_order(doc: dict, licence_expires: Optional[date], seats: int,
-                            customer: Optional[str]) -> dict:
+    async def deliver_order(doc: dict, licence_expires: date | None, seats: int,
+                            customer: str | None) -> dict:
         request_id = doc["id"]
         if doc["status"] == "livre":
             raise HTTPException(status_code=409, detail="Déjà livrée : utilisez « Renvoyer le mail ».")
@@ -347,11 +347,11 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
 
     # ---- Espace client ----
     @router.get("/beta/download")
-    async def client_download(c: dict = Depends(get_client)):
+    async def client_download(c: dict = Depends(get_client)):  # noqa: B008 - usage FastAPI ; Annotated ne voit pas get_client (local) avec les annotations différées
         return await new_download_link({"client_key": c["key"]})
 
     @router.get("/beta/licence")
-    async def client_licence(c: dict = Depends(get_client)):
+    async def client_licence(c: dict = Depends(get_client)):  # noqa: B008 - usage FastAPI ; Annotated ne voit pas get_client (local) avec les annotations différées
         key_doc = await db.beta_keys.find_one({"key": c["key"]}, {"_id": 0})
         if not key_doc or not key_doc.get("licence_key"):
             return {"licence": None}
@@ -365,7 +365,7 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
         if not link:
             raise HTTPException(status_code=404, detail="Lien de téléchargement inconnu.")
         expires = datetime.fromisoformat(link["expires_at"])
-        if datetime.now(timezone.utc) > expires:
+        if datetime.now(UTC) > expires:
             raise HTTPException(status_code=410,
                                 detail="Ce lien a expiré : téléchargez Beaver depuis votre espace client.")
         path = releases_dir() / link["file"]

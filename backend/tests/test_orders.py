@@ -147,6 +147,7 @@ def test_the_quote_states_the_licence_terms(app_client, request_id, mails):
 
 def test_confirming_the_order_delivers_it_with_the_quote_terms(app_client, request_id, mails, signing_key):
     from datetime import date
+
     from orders import add_months
     release(app_client)
     app_client.post(f"/api/admin/requests/{request_id}/quote", headers=app_client.admin,
@@ -197,6 +198,7 @@ def test_without_an_installer_the_order_waits_and_says_why(app_client, request_i
 
 def test_add_months_keeps_the_day_or_takes_the_last_one():
     from datetime import date
+
     from orders import add_months
     assert add_months(date(2026, 11, 24), 12) == date(2027, 11, 24)
     assert add_months(date(2026, 1, 31), 1) == date(2026, 2, 28)
@@ -211,7 +213,7 @@ def test_the_licence_opens_the_customer_space_without_registering(app_client, re
     out = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={}).json()
     licence = out["licence_key"]
     # Collée depuis un mail : libellé copié avec, retours à la ligne, espace insécable invisible.
-    pasted = "Votre clé de licence : " + licence[:50] + "\n" + licence[50:] + "​ "
+    pasted = "Votre clé de licence : " + licence[:50] + "\n" + licence[50:] + "\u200b "
     r = app_client.post("/api/beta/login", json={"key": pasted})
     assert r.status_code == 200, r.text
     auth = {"Authorization": f"Bearer {r.json()['session_token']}"}

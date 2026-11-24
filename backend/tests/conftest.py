@@ -145,8 +145,9 @@ def app_client(monkeypatch, tmp_path, signing_key, mails):
     db = FakeDB()
     monkeypatch.setattr(server, "db", db)
     # The orders router captured server.db when it was built: rebuild the app's routes on the fake.
-    import orders
     from fastapi import APIRouter, FastAPI
+
+    import orders
     app = FastAPI()
     router = APIRouter(prefix="/api")
     for route in server.api_router.routes:

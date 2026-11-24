@@ -18,10 +18,10 @@ import logging
 import os
 import smtplib
 import ssl
+from collections.abc import Iterable
 from dataclasses import dataclass
 from email.message import EmailMessage
 from email.utils import formataddr, make_msgid
-from typing import Iterable, Optional
 
 logger = logging.getLogger("beaver.mailer")
 
@@ -38,7 +38,7 @@ class SMTPConfig:
     recipients: tuple[str, ...]
 
     @classmethod
-    def from_env(cls) -> Optional["SMTPConfig"]:
+    def from_env(cls) -> SMTPConfig | None:
         user = os.environ.get("SMTP_USER", "").strip()
         password = os.environ.get("SMTP_PASSWORD", "").strip()
         if not user or not password:
@@ -59,7 +59,7 @@ class SMTPConfig:
         )
 
 
-def _one_line(value: Optional[str]) -> str:
+def _one_line(value: str | None) -> str:
     """Collapse whitespace/newlines so user input can't break email headers."""
     return " ".join((value or "").split())
 
@@ -67,8 +67,8 @@ def _one_line(value: Optional[str]) -> str:
 def _build_message(
     cfg: SMTPConfig,
     subject: str,
-    fields: Iterable[tuple[str, Optional[str]]],
-    reply_to: Optional[str],
+    fields: Iterable[tuple[str, str | None]],
+    reply_to: str | None,
 ) -> EmailMessage:
     fields = list(fields)
 
@@ -145,8 +145,8 @@ def _send_sync(cfg: SMTPConfig, msg: EmailMessage) -> None:
 
 async def send_notification(
     subject: str,
-    fields: Iterable[tuple[str, Optional[str]]],
-    reply_to: Optional[str] = None,
+    fields: Iterable[tuple[str, str | None]],
+    reply_to: str | None = None,
 ) -> str:
     """Send a notification email. Never raises.
 
@@ -161,7 +161,7 @@ async def send_notification(
         await asyncio.to_thread(_send_sync, cfg, msg)
         logger.info("Notification email sent to %s: %s", ", ".join(cfg.recipients), msg["Subject"])
         return "sent"
-    except Exception:  # noqa: BLE001 - a mail failure must never break the request
+    except Exception:
         logger.exception("Failed to send notification email: %s", subject)
         return "failed"
 
@@ -219,8 +219,8 @@ def _customer_message(
     greeting: str,
     paragraphs: list[str],
     code_blocks: Iterable[tuple[str, str]] = (),
-    button: Optional[tuple[str, str]] = None,
-    closing: Optional[list[str]] = None,
+    button: tuple[str, str] | None = None,
+    closing: list[str] | None = None,
 ) -> EmailMessage:
     """A plain, readable email to a customer: paragraphs, labelled blocks of
     text to copy exactly (a licence key) and at most one button (a link).
@@ -280,8 +280,8 @@ def _customer_message(
 
 async def send_customer_email(to: str, subject: str, greeting: str, paragraphs: list[str],
                               code_blocks: Iterable[tuple[str, str]] = (),
-                              button: Optional[tuple[str, str]] = None,
-                              closing: Optional[list[str]] = None) -> str:
+                              button: tuple[str, str] | None = None,
+                              closing: list[str] | None = None) -> str:
     """Send an email to a customer. Never raises. Returns "sent", "failed" or "disabled"."""
     cfg = SMTPConfig.from_env()
     if cfg is None:
@@ -292,6 +292,6 @@ async def send_customer_email(to: str, subject: str, greeting: str, paragraphs: 
         await asyncio.to_thread(_send_sync, cfg, msg)
         logger.info("Customer email sent to %s: %s", to, msg["Subject"])
         return "sent"
-    except Exception:  # noqa: BLE001 - a mail failure must never break the request
+    except Exception:
         logger.exception("Failed to send customer email: %s", subject)
         return "failed"

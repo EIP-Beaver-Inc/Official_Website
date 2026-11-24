@@ -35,7 +35,6 @@ import os
 import secrets
 from dataclasses import dataclass
 from datetime import date
-from typing import Optional
 
 PREFIX = "BVR1"
 PRODUCT = "beaver"
@@ -52,7 +51,7 @@ class IssuedLicence:
     customer: str
     email: str
     issued: str
-    expires: Optional[str]
+    expires: str | None
     seats: int
 
 
@@ -92,8 +91,8 @@ def new_licence_id() -> str:
     return "LIC-" + secrets.token_hex(4).upper()
 
 
-def issue(customer: str, email: str, expires: Optional[date], seats: int = 1,
-          licence_id: Optional[str] = None, issued: Optional[date] = None) -> IssuedLicence:
+def issue(customer: str, email: str, expires: date | None, seats: int = 1,
+          licence_id: str | None = None, issued: date | None = None) -> IssuedLicence:
     """Une licence signée pour `customer`. `expires` None : sans limite de durée."""
     if seats < 1:
         raise ValueError("seats doit valoir au moins 1")

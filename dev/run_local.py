@@ -13,7 +13,6 @@ Lancement : dev\\run_local.ps1 (prépare l'environnement puis appelle ce fichier
 """
 from __future__ import annotations
 
-import base64
 import os
 import re
 import sys
@@ -43,7 +42,7 @@ def _cle_publique_de_prod() -> str | None:
     source = BEAVER / "frontend" / "services" / "licence.py"
     if not source.exists():
         return None
-    trouve = re.search(r'^PUBLIC_KEY\s*=\s*"([^"]+)"', source.read_text(encoding="utf-8"), re.M)
+    trouve = re.search(r'^PUBLIC_KEY\s*=\s*"([^"]+)"', source.read_text(encoding="utf-8"), re.MULTILINE)
     return trouve.group(1) if trouve else None
 
 
@@ -130,7 +129,7 @@ def main() -> None:
     infos = configurer()
     brancher_memoire_et_outbox()
     os.chdir(BACKEND)
-    import server   # noqa: E402 - après les remplacements ci-dessus
+    import server
     servir_le_frontend(server.app)
 
     dist = Path(os.environ["RELEASES_DIR"])
