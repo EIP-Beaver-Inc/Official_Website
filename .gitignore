@@ -100,3 +100,7 @@ credentials.json
 
 # Installateurs servis aux clients (déposés sur le serveur, pas dans git)
 releases/
+
+# Site en local (dev/run_local.ps1)
+.venv-dev/
+outbox/
