@@ -82,6 +82,31 @@ Publier une version du logiciel : copier `BeaverSetup-x.y.z.exe` (construit par
 
 Tests du serveur (sans MongoDB ni SMTP) : `cd backend && pytest tests`.
 
+## Tester tout le système en local (sans la prod, sans Docker)
+
+```powershell
+powershell -ExecutionPolicy Bypass -File dev\run_local.ps1     # -Rebuild après une modif du frontend
+```
+
+Le site complet tourne sur **http://localhost:8001** (admin : `/admin`, mot de passe =
+`ADMIN_TOKEN` du `.env`, sinon `admin-local`) :
+
+- base MongoDB simulée en mémoire, vide à chaque lancement ;
+- les mails ne partent pas : ils sont enregistrés dans `outbox/` (fichiers `.eml`) ;
+- l'installateur servi est celui de `../Beaver/installer/dist` ;
+- les licences sont signées avec la clé de **test** du `.env` (le script refuse la clé de
+  prod). Paire de test : `.venv-dev\Scripts\python.exe backend\licensing.py generate`.
+
+Parcours automatique (devis → commande → livraison → mail → téléchargement → espace
+client → licence acceptée par le logiciel), le site local étant lancé :
+
+```powershell
+.venv-dev\Scripts\python.exe dev\parcours_local.py
+```
+
+Le bandeau affiché au lancement donne la commande pour démarrer BEAVER installé avec la
+clé publique de test.
+
 ## Développement local (sans Docker)
 
 ### Backend
