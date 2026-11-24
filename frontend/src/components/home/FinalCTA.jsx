@@ -5,8 +5,8 @@ import PillButton from '@/components/PillButton';
 import BrickPanel from '@/components/BrickPanel';
 import { MASCOT_REPORTS_URL } from '@/lib/assets';
 
-const MARQUEE = ['Nœuds', 'Fissures', 'Temps réel', 'Embarqué', 'EN 975-1', 'Du bois dont on fait les bons tris'];
-const ONBOARDING = ['Audit ligne', 'Calibration ROI', 'Fine-tuning BOBER', 'Intégration backend & PyQt6'];
+const MARQUEE = ['Nœuds', 'Fentes', 'Temps réel', 'Embarqué', 'EN 975-1', 'Du bois dont on fait les bons tris'];
+const ONBOARDING = ['Audit de la ligne', 'Pose du boîtier et de la caméra', 'Réglage de l’échelle', 'Connexion des postes de l’atelier'];
 const STEP_MS = 700;
 
 function useSequence(ref, count) {

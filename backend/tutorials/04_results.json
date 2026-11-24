@@ -3,28 +3,28 @@
   "order": 4,
   "title": "Lire et interpréter les résultats",
   "category": "Utilisation",
-  "description": "Comprendre les classes EN 975-1 affichées par Beaver et le rapport qualité généré.",
+  "description": "Comprendre l'image en direct, les classes EN 975-1 attribuées et l'historique des planches.",
   "duration": "10 min",
   "steps": [
     {
-      "title": "Les 4 familles de produits",
-      "content": "Beaver classe chaque planche selon la norme EN 975-1 en 4 familles : Q-B (plots reconstitués), Q-S (plateaux sélectionnés), Q-F (frises et avivés), Q-P (pièces équarries). La famille est détectée automatiquement à partir des dimensions de la pièce."
+      "title": "Les produits et leurs choix",
+      "content": "Beaver classe chaque planche selon la norme EN 975-1, pour le produit choisi sur l'image. Le code se lit essence, produit, choix : Q-F 1a est une frise de chêne de choix 1a. Choix possibles du meilleur au moins bon : F frises et avivés 1a, 1b, 2, 3, 4 ; B plots et S plateaux A, 1, 2, 3, 4 ; P pièces équarries A, 1, 2."
     },
     {
-      "title": "Les niveaux de qualité",
-      "content": "Au sein de chaque famille, Beaver attribue un niveau : A (exceptionnel), 1 (supérieur), 2 (courant), 3 (industriel), 4 (déclassé). Par exemple Q-B 1 = plot de qualité supérieure, Q-F 4 = frise déclassée."
+      "title": "Le statut de la note",
+      "content": "« Classée » : tous les critères ont été vérifiés. « Sous réserve » : un choix est donné, mais certains critères n'ont pas pu l'être, par exemple une seule face filmée. « Hors choix » : la planche n'atteint aucun choix du produit demandé. « Non classée » : aucune note n'est possible, le plus souvent faute d'échelle (voir le tutoriel « Régler l'échelle du système »). La note est celle calculée par l'IA ; le logiciel ne la recalcule jamais."
     },
     {
-      "title": "L'interface de classification en temps réel",
-      "content": "En mode production, la vue principale affiche le flux caméra avec les défauts détectés encadrés et étiquetés (nœud, fissure, aubier…). La classe attribuée apparaît en bas à droite, mise à jour planche par planche."
+      "title": "L'image en direct",
+      "content": "Chaque défaut détecté est entouré dans la couleur de son type ; rien n'est écrit sur le bois, pour qu'il reste lisible. Trait plein : la détection a été calculée sur l'image affichée. Pointillé : elle vient d'une image précédente et le bois a pu avancer depuis. Le bandeau sous l'image donne le nombre de planches passées, puis les défauts par type de la planche en cours et, une fois classée, ceux que l'IA a retenus. La classe de la dernière planche s'affiche sous la vidéo."
     },
     {
-      "title": "Le rapport de session",
-      "content": "À la fin d'une session de production, allez dans Fichier → Rapport. Beaver génère un résumé avec le nombre de planches analysées, la distribution des classes, le taux de déclassement et les défauts les plus fréquents."
+      "title": "L'historique",
+      "content": "La page Historique liste toutes les planches enregistrées, avec recherche par référence (P-…), filtres par période, essence, produit et classe, et tri par colonne. Cliquez sur une planche pour voir son détail : dimensions mesurées, types de défauts relevés et, quand elle n'a pas obtenu de choix ferme, la raison donnée par l'IA. « Exporter en CSV » produit un fichier lisible dans Excel."
     },
     {
-      "title": "Corriger manuellement une classification",
-      "content": "Si vous constatez une erreur de classification sur une planche, cliquez dessus dans l'historique et choisissez « Corriger la classe ». Ces corrections sont enregistrées et nous aident à améliorer le modèle."
+      "title": "Signaler une erreur de classement",
+      "content": "Si une classe vous semble fausse, notez la référence de la planche (P-…) et ouvrez un ticket depuis votre espace client en décrivant ce que vous attendiez. Ces cas nous servent à améliorer le modèle. La correction manuelle d'une classe dans le logiciel n'existe pas encore."
     }
   ]
 }

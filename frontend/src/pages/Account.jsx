@@ -3,20 +3,84 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
     Download, BookOpen, MessageSquare, LogOut, Loader2,
     ChevronDown, ChevronRight, Clock, CheckCircle, Send,
-    Ticket, ArrowRight,
+    Ticket, ArrowRight, KeyRound, Copy, Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { fetchBetaMe, fetchTutorials, listMyTickets, submitFeedback } from '@/lib/api';
+import { fetchBetaMe, fetchDownloadLink, fetchMyLicence, fetchTutorials, listMyTickets, submitFeedback } from '@/lib/api';
 import PageHero from '@/components/PageHero';
 import LiveDot from '@/components/LiveDot';
 import BrickPanel from '@/components/BrickPanel';
 
 const FEEDBACK_CATEGORIES = ['Interface', 'Performance', 'Précision IA', 'Documentation', 'Autre'];
 
-const DOWNLOAD_URL = '#';
-const APP_VERSION = '0.1.0-beta';
+// The installer is served by the website (backend/orders.py): each click asks
+// for a fresh download link, valid a few weeks.
+function DownloadButton() {
+    const [busy, setBusy] = useState(false);
+    const download = async () => {
+        setBusy(true);
+        try {
+            const link = await fetchDownloadLink();
+            window.location.href = link.url;
+        } catch (err) {
+            toast.error(err?.response?.data?.detail || 'Téléchargement indisponible pour le moment. Contactez Beaver.');
+        } finally {
+            setBusy(false);
+        }
+    };
+    return (
+        <button
+            onClick={download}
+            disabled={busy}
+            className="inline-flex items-center gap-2 rounded-full bg-primary-foreground text-primary hover:bg-white hover:scale-[1.03] disabled:opacity-70 px-6 h-12 text-sm font-medium transition-[background-color,transform]"
+        >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Télécharger
+        </button>
+    );
+}
+
+function LicencePanel({ licence }) {
+    const [copied, setCopied] = useState(false);
+    if (!licence) return null;
+    const copy = async () => {
+        try {
+            await navigator.clipboard.writeText(licence.key);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            toast.error('Copie impossible : sélectionnez la clé à la main.');
+        }
+    };
+    const until = licence.expires
+        ? `valable jusqu'au ${new Date(licence.expires).toLocaleDateString('fr-FR')}`
+        : 'sans limite de durée';
+    return (
+        <div className="rounded-2xl border border-black/5 bg-[hsl(var(--card))] p-6">
+            <div className="flex items-center gap-2 mb-3">
+                <KeyRound className="h-4 w-4 text-[hsl(var(--primary))]" />
+                <span className="label-caps">Votre licence</span>
+                <span className="ml-auto text-xs text-[hsl(var(--muted-foreground))]">
+                    {licence.id} · {until} · {licence.seats} poste{licence.seats > 1 ? 's' : ''}
+                </span>
+            </div>
+            <p className="text-sm text-[hsl(var(--muted-foreground))] mb-3">
+                À coller dans l'écran d'activation au premier lancement de Beaver.
+            </p>
+            <div className="flex items-start gap-3">
+                <div className="flex-1 font-mono text-xs break-all rounded-xl border border-black/10 bg-[hsl(var(--background))] p-3 select-all">
+                    {licence.key}
+                </div>
+                <button onClick={copy} className="inline-flex items-center gap-1.5 rounded-full border border-black/10 px-3 h-9 text-sm hover:bg-[hsl(var(--background))] shrink-0">
+                    {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copied ? 'Copiée' : 'Copier'}
+                </button>
+            </div>
+        </div>
+    );
+}
 
 const CATEGORY_COLORS = {
     'Démarrage': 'bg-green-100 text-green-700',
@@ -89,20 +153,24 @@ function TutorialCard({ tutorial }) {
 
 const FAQ = [
     {
-        q: "L'application ne détecte pas ma caméra.",
-        a: "Vérifiez que la caméra est branchée avant de lancer Beaver. Pour les caméras IP, assurez-vous que l'URL RTSP est correcte et que la caméra est sur le même réseau.",
+        q: "L'application affiche « Caméra indisponible ».",
+        a: "Vérifiez le câble USB de la caméra (sur le boîtier, ou sur le poste sans boîtier) et qu'aucune autre application ne l'utilise. Beaver réessaie tout seul : l'image revient sans rien relancer. Seules les caméras USB sont prises en charge, pas les caméras réseau (RTSP).",
+    },
+    {
+        q: "Mes planches restent « Non classées ».",
+        a: "Le classement a besoin d'une échelle pour mesurer les défauts en millimètres. Renseignez la distance entre la caméra et la planche dans Paramètres → Détection IA (voir le guide « Régler l'échelle du système »). Le détail de la planche, dans l'Historique, donne la raison exacte.",
     },
     {
         q: "Les classes attribuées me semblent incorrectes.",
-        a: "Recommencez la calibration avec au moins 5 planches de référence. Vérifiez également l'éclairage de la ligne (lumière uniforme, sans reflets) et la mise au point de l'objectif.",
+        a: "Vérifiez l'essence et le produit choisis sur l'image (pastille en haut à gauche) et la distance caméra–planche. Ouvrez la planche dans l'Historique : le défaut qui la limite y est indiqué. Si l'erreur persiste, ouvrez un ticket avec la référence de la planche (P-…).",
     },
     {
-        q: "L'application est lente ou rame.",
-        a: "Beaver recommande un processeur 4 cœurs et 8 Go de RAM minimum. Fermez les autres applications gourmandes. Si le problème persiste, réduisez la résolution caméra dans les paramètres.",
+        q: "L'analyse est lente.",
+        a: "L'analyse est prévue pour une carte graphique NVIDIA. Sans elle, elle tourne sur le processeur, plusieurs fois plus lentement : la vidéo reste fluide mais moins d'images sont analysées. Paramètres → Informations système → « Calcul IA » indique ce qui est utilisé.",
     },
     {
         q: "Comment signaler un bug ?",
-        a: "Envoyez un email à beaver.eip@gmail.com avec une description du problème, les logs (Aide → Afficher les logs → Exporter) et si possible une capture d'écran.",
+        a: "Ouvrez un ticket ou écrivez à beaver.eip@gmail.com avec une description du problème, une capture d'écran du « Journal du boîtier » (bouton sous la vidéo) et, si l'application s'est fermée, le fichier crash.log du dossier .beaver de votre profil Windows.",
     },
 ];
 
@@ -199,6 +267,7 @@ export default function Account() {
     const [user, setUser] = useState(null);
     const [tutorials, setTutorials] = useState([]);
     const [ticketSummary, setTicketSummary] = useState({ total: 0, unread: 0 });
+    const [licence, setLicence] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const logout = () => {
@@ -213,8 +282,11 @@ export default function Account() {
             return;
         }
         try {
-            const [me, tutos, ticketData] = await Promise.all([fetchBetaMe(), fetchTutorials(), listMyTickets()]);
+            const [me, tutos, ticketData, lic] = await Promise.all([
+                fetchBetaMe(), fetchTutorials(), listMyTickets(), fetchMyLicence().catch(() => null),
+            ]);
             setUser(me);
+            setLicence(lic);
             setTutorials(tutos);
             setTicketSummary({ total: ticketData.tickets.length, unread: ticketData.unread_count });
         } catch (err) {
@@ -252,7 +324,7 @@ export default function Account() {
             {/* Header */}
             <PageHero
                 size="md"
-                kicker="Espace client · Beaver Beta"
+                kicker="Espace client · Beaver"
                 title={user?.company ?? 'Bienvenue'}
             >
                 <div className="mt-5 flex items-center gap-3 flex-wrap">
@@ -276,17 +348,11 @@ export default function Account() {
                 <div className="flex flex-col sm:flex-row sm:items-end gap-6">
                     <div className="flex-1">
                         <div className="font-mono-ui text-[0.6875rem] uppercase tracking-[0.14em] text-primary-foreground/70">Téléchargement</div>
-                        <div className="mt-4 font-display font-semibold text-4xl sm:text-5xl tracking-[-0.04em]">Beaver {APP_VERSION}</div>
-                        <div className="mt-2 text-sm text-primary-foreground/75">Windows 10/11 · x64 · Aucune installation requise</div>
+                        <div className="mt-4 font-display font-semibold text-4xl sm:text-5xl tracking-[-0.04em]">Beaver pour Windows</div>
+                        <div className="mt-2 text-sm text-primary-foreground/75">Windows 10/11 · x64 · Installation guidée · Carte NVIDIA recommandée</div>
                     </div>
                     <div className="flex gap-3">
-                        <a
-                            href={DOWNLOAD_URL}
-                            className="inline-flex items-center gap-2 rounded-full bg-primary-foreground text-primary hover:bg-white hover:scale-[1.03] px-6 h-12 text-sm font-medium transition-[background-color,transform]"
-                        >
-                            <Download className="h-4 w-4" />
-                            Télécharger
-                        </a>
+                        <DownloadButton />
                         <a
                             href="mailto:beaver.eip@gmail.com"
                             className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/5 px-5 h-12 text-sm font-medium hover:bg-primary-foreground/15 transition-colors"
@@ -297,6 +363,8 @@ export default function Account() {
                     </div>
                 </div>
             </BrickPanel>
+
+            <LicencePanel licence={licence} />
 
             {/* Tutorials */}
             <div>
@@ -382,8 +450,9 @@ export default function Account() {
                         <ul className="space-y-1.5 text-sm text-[hsl(var(--muted-foreground))]">
                             {[
                                 'Le formulaire de retour UX (envoyé par email)',
-                                'La base de données locale : Fichier → Exporter → Base de données',
-                                'Les logs d\'erreur : Aide → Afficher les logs → Exporter',
+                                'L\'historique : Historique → tout sélectionner → Exporter en CSV',
+                                'La base de l\'historique : fichier backend\\data\\beaver.db du dossier Beaver',
+                                'Les journaux : dossier logs de Beaver, et crash.log s\'il existe',
                             ].map((item) => (
                                 <li key={item} className="flex items-start gap-2">
                                     <CheckCircle className="h-4 w-4 shrink-0 mt-0.5 text-[hsl(var(--primary)/0.6)]" />

@@ -37,7 +37,7 @@ const STEPS = [
     },
     {
         title: 'Pas le temps de prendre racine.',
-        text: 'Le tout est exécuté en temps réel sur machine en scierie et directement connecté à un hardware embarqué.',
+        text: 'L’analyse tourne en continu sur un boîtier posé au bord de la ligne, relié à sa caméra. Les postes de l’atelier reçoivent la vidéo et les résultats en direct.',
     },
     {
         title: 'Rien ne se perd, tout se trie.',
@@ -260,9 +260,9 @@ export default function ScanStory() {
                         <div ref={verdictRef} className="absolute bottom-0 sm:bottom-4 left-1/2 w-[min(35rem,100%)] opacity-0">
                             <div className="rounded-2xl bg-card border border-black/5 shadow-[0_24px_60px_rgba(60,35,20,0.15)] p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-3 items-center">
                                 {[
-                                    ['Nœuds vifs', counts.vif],
+                                    ['Nœuds sains', counts.vif],
                                     ['Nœuds morts', counts.mort],
-                                    ['Fissures', counts.fissure],
+                                    ['Fentes', counts.fissure],
                                 ].map(([label, n]) => (
                                     <div key={label}>
                                         <div className="font-mono-ui text-[0.625rem] uppercase tracking-[0.12em] text-muted-foreground">

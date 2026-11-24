@@ -159,3 +159,44 @@ export async function adminGetStats() {
     const r = await api.get('/admin/stats', { headers: adminHeaders() });
     return r.data;
 }
+
+// ---- Commandes, licences, téléchargement (backend/orders.py) ----
+export async function fetchMyLicence() {
+    const r = await api.get('/beta/licence', { headers: betaHeaders() });
+    return r.data.licence;
+}
+
+export async function fetchDownloadLink() {
+    const r = await api.get('/beta/download', { headers: betaHeaders() });
+    return r.data;
+}
+
+export async function adminListRequests() {
+    const r = await api.get('/admin/requests', { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminReleaseInfo() {
+    const r = await api.get('/admin/releases', { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminSendQuote(id, payload) {
+    const r = await api.post(`/admin/requests/${id}/quote`, payload, { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminSetRequestStatus(id, status) {
+    const r = await api.post(`/admin/requests/${id}/status`, { status }, { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminDeliver(id, payload) {
+    const r = await api.post(`/admin/requests/${id}/deliver`, payload, { headers: adminHeaders() });
+    return r.data;
+}
+
+export async function adminResendDelivery(id) {
+    const r = await api.post(`/admin/requests/${id}/resend`, {}, { headers: adminHeaders() });
+    return r.data;
+}

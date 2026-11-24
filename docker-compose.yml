@@ -27,6 +27,15 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - SMTP_FROM=${SMTP_FROM:-}
       - NOTIFY_EMAIL_TO=${NOTIFY_EMAIL_TO:-beaver.eip@gmail.com}
+      # Licences : clé privée de signature (python backend/licensing.py generate). SECRÈTE.
+      - LICENCE_PRIVATE_KEY=${LICENCE_PRIVATE_KEY:-}
+      # Adresse publique du site, pour les liens envoyés par mail.
+      - SITE_URL=${SITE_URL:-https://beaver-website.fr}
+      # Installateurs BeaverSetup-x.y.z.exe servis aux clients (le plus récent).
+      - RELEASES_DIR=/releases
+      - DOWNLOAD_LINK_DAYS=${DOWNLOAD_LINK_DAYS:-30}
+    volumes:
+      - ./releases:/releases:ro
     depends_on:
       mongo:
         condition: service_healthy

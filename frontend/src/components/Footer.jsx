@@ -17,7 +17,7 @@ export default function Footer() {
                             <img src={WORDMARK_URL} alt="Beaver" className="h-6 w-auto" loading="lazy" />
                             <div className="label-caps mt-1">Vision IA · Scieries</div>
                             <p className="mt-3 text-sm text-[hsl(var(--muted-foreground))] max-w-xs leading-relaxed">
-                                Détection automatique de défauts sur planches de bois. Pipeline IA temps réel conforme à la norme EN 975-1.
+                                Détection automatique de défauts sur planches de bois. Chaîne IA temps réel, classement selon la norme EN 975-1.
                             </p>
                         </div>
                     </div>
@@ -47,8 +47,8 @@ export default function Footer() {
                         <div className="label-caps">Légal</div>
                         <ul className="mt-3 space-y-2 text-sm text-[hsl(var(--muted-foreground))]">
                             <li>© {new Date().getFullYear()} BEAVER - Tous droits réservés.</li>
-                            <li>Pipeline propriétaire · ROI · BOBER · DefectTracker</li>
-                            <li>Conforme NF EN 975-1 (feuillus)</li>
+                            <li>Chaîne propriétaire · ROI · BOBER · moteur EN 975-1</li>
+                            <li>Classement selon EN 975-1 (chêne, hêtre)</li>
                         </ul>
                     </div>
                 </div>

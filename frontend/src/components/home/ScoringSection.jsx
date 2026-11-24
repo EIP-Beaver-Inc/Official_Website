@@ -3,10 +3,10 @@ import SectionHeader from '@/components/SectionHeader';
 import { fetchScoring } from '@/lib/api';
 
 const CARD_TONE = {
-    Premium: 'border-[hsla(14,64%,42%,0.35)] bg-[hsla(14,64%,42%,0.06)]',
-    Standard: 'border-black/5 bg-[hsl(var(--card))]',
-    Economy: 'border-black/5 bg-[hsl(var(--card))]',
-    Reject: 'border-black/5 bg-[hsl(var(--card))]',
+    'Classée': 'border-[hsla(14,64%,42%,0.35)] bg-[hsla(14,64%,42%,0.06)]',
+    'Sous réserve': 'border-black/5 bg-[hsl(var(--card))]',
+    'Hors choix': 'border-black/5 bg-[hsl(var(--card))]',
+    'Non classée': 'border-black/5 bg-[hsl(var(--card))]',
 };
 
 export default function ScoringSection() {
@@ -27,17 +27,17 @@ export default function ScoringSection() {
                             kicker="03 · Classement"
                             title={
                                 <>
-                                    Score 0–100, classe <span className="brick-italic">en sortie.</span>
+                                    La note EN 975-1, <span className="brick-italic">planche par planche.</span>
                                 </>
                             }
-                            subtitle="Le backend C++17 calcule un score qualité déterministe à partir des défauts confirmés par BOBER, leurs surfaces et leur criticité. Stockage SQLite3, exposition via API REST cpp-httplib."
+                            subtitle="Le moteur de classement mesure chaque défaut retenu en millimètres sur la planche entière et attribue son choix selon le produit demandé. Le logiciel affiche cette note telle que l’IA l’a posée, avec ses motifs : il ne la recalcule jamais."
                         />
                         <ul className="mt-8 space-y-3 text-sm">
                             {[
-                                'Calcul de score déterministe par planche',
-                                'Persistance SQLite3 + export JSON par session',
-                                'Photos haute résolution de chaque défaut confirmé',
-                                'Communication HTTP/JSON avec frontend opérateur PyQt6',
+                                'Planche entière mesurée en millimètres',
+                                'Motif limitant et réserves indiqués pour chaque planche',
+                                'Rapport complet conservé dans l’historique',
+                                'Historique filtrable et export CSV',
                             ].map((b) => (
                                 <li key={b} className="flex items-start gap-3">
                                     <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[hsl(var(--primary))]" />
@@ -57,7 +57,7 @@ export default function ScoringSection() {
                                     className={`rounded-2xl border p-5 sm:p-6 transition-shadow duration-200 hover:shadow-[0_14px_32px_rgba(17,17,17,0.07)] ${CARD_TONE[c.name] || ''}`}
                                 >
                                     <div className="flex items-center justify-between">
-                                        <span className="label-caps">Classe {String(idx + 1).padStart(2, '0')}</span>
+                                        <span className="label-caps">Statut {String(idx + 1).padStart(2, '0')}</span>
                                         <span className="text-[11px] tracking-[0.16em] uppercase text-[hsl(var(--primary))] font-medium">
                                             {c.range}
                                         </span>

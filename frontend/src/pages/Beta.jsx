@@ -7,17 +7,19 @@ import { toast } from 'sonner';
 import { validateBetaKey, betaLogin } from '@/lib/api';
 import PageHero from '@/components/PageHero';
 
-function KeyInput({ value, onChange }) {
+// Une clé de licence (BVR1.…, reçue par mail avec le logiciel) ou une ancienne
+// clé d'accès beta (XXXX-XXXX-XXXX-XXXX).
+function KeyInput({ value, onChange, label = 'Votre clé de licence', placeholder = 'BVR1.…' }) {
     return (
         <div className="flex flex-col gap-1.5">
             <Label className="label-caps">
-                Clé d'accès beta <span className="text-[hsl(var(--primary))]">*</span>
+                {label} <span className="text-[hsl(var(--primary))]">*</span>
             </Label>
             <Input
                 value={value}
                 onChange={onChange}
-                placeholder="XXXX-XXXX-XXXX-XXXX"
-                className="font-mono tracking-widest uppercase bg-[hsl(var(--background))]"
+                placeholder={placeholder}
+                className="font-mono bg-[hsl(var(--background))]"
                 required
                 autoFocus
             />
@@ -41,8 +43,8 @@ function LoginForm() {
         } catch (err) {
             const status = err?.response?.status;
             const detail = err?.response?.data?.detail;
-            if (status === 400) toast.error('Clé non encore activée, utilisez l\'onglet "Première connexion".');
-            else if (status === 404) toast.error('Clé invalide. Vérifiez votre email de Beaver.');
+            if (status === 400) toast.error('Clé beta non encore activée, utilisez l\'onglet "Clé beta".');
+            else if (status === 404) toast.error('Clé inconnue. Copiez en entier la clé de licence reçue par mail (elle commence par BVR1.).');
             else if (status === 403) toast.error('Cette clé a été révoquée. Contactez Beaver.');
             else if (status === 410) toast.error('Cette clé est expirée. Contactez Beaver.');
             else toast.error(detail || 'Erreur de connexion.');
@@ -99,7 +101,7 @@ function RegisterForm() {
 
     return (
         <form onSubmit={onSubmit} className="space-y-4">
-            <KeyInput value={form.key} onChange={set('key')} />
+            <KeyInput value={form.key} onChange={set('key')} label="Clé d'accès beta" placeholder="XXXX-XXXX-XXXX-XXXX" />
             <div className="pt-2 border-t border-black/5">
                 <p className="label-caps mb-4">Informations d'enregistrement</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -146,13 +148,13 @@ export default function Beta() {
         <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
             <div className="lg:col-span-6">
                 <PageHero
-                    kicker="Accès beta · Beaver"
+                    kicker="Espace client · Beaver"
                     title={
                         <>
                             Votre espace <span className="text-primary">client.</span>
                         </>
                     }
-                    subtitle="Connectez-vous avec votre clé d'accès beta pour télécharger l'application, consulter les guides et suivre vos tickets."
+                    subtitle="Connectez-vous avec la clé de licence reçue par mail avec le logiciel (elle commence par BVR1.) pour télécharger l'application, consulter les guides et suivre vos demandes."
                 />
                 <ul className="mt-10 space-y-3" data-animate="fade-up">
                     {PERKS.map(({ Icon, title, text }) => (
@@ -175,7 +177,7 @@ export default function Beta() {
                     <div className="grid grid-cols-2 gap-1 rounded-full bg-background p-1 border border-black/5">
                         {[
                             { id: 'login', label: 'Se connecter' },
-                            { id: 'register', label: 'Première connexion' },
+                            { id: 'register', label: 'Clé beta' },
                         ].map(({ id, label }) => (
                             <button
                                 key={id}
@@ -195,7 +197,7 @@ export default function Beta() {
                             <KeyRound className="h-5 w-5 text-primary" />
                         </span>
                         <span className="font-display font-semibold text-lg tracking-[-0.02em]">
-                            {tab === 'login' ? 'Connexion avec votre clé' : 'Activation de votre clé'}
+                            {tab === 'login' ? 'Connexion avec votre licence' : "Activation d'une clé beta"}
                         </span>
                     </div>
 

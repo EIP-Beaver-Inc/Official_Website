@@ -4,9 +4,9 @@ export const PLANK_SIZE = { w: 3210, h: 365 };
 export const PLANK_RATIO = PLANK_SIZE.w / PLANK_SIZE.h;
 
 export const DEFECT_TYPES = {
-    vif: { label: 'Nœud vif', color: 'hsl(120 35% 38%)' },
+    vif: { label: 'Nœud sain', color: 'hsl(120 35% 38%)' },
     mort: { label: 'Nœud mort', color: 'hsl(35 70% 42%)' },
-    fissure: { label: 'Fissure', color: 'hsl(var(--primary))' },
+    fissure: { label: 'Fente', color: 'hsl(var(--primary))' },
 };
 
 export const PLANK_DEFECTS = [

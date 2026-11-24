@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Key, Users, Copy, Check, LogOut, Loader2, RefreshCw, Eye, EyeOff, Trash2, Ticket, MessageSquare, ChevronDown, Send, BarChart2 } from 'lucide-react';
+import { Plus, Key, Users, Copy, Check, LogOut, Loader2, RefreshCw, Eye, EyeOff, Trash2, Ticket, MessageSquare, ChevronDown, Send, BarChart2, ShoppingCart } from 'lucide-react';
+import OrdersPanel from '@/components/admin/OrdersPanel';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -468,7 +469,7 @@ function StatsPanel({ stats, formatDate }) {
 
 export default function Admin() {
     const navigate = useNavigate();
-    const [tab, setTab] = useState('keys');
+    const [tab, setTab] = useState('orders');
     const [keys, setKeys] = useState([]);
     const [clients, setClients] = useState([]);
     const [tickets, setTickets] = useState([]);
@@ -552,7 +553,7 @@ export default function Admin() {
                         <span className="text-[hsl(var(--primary))]">Admin</span> · Beaver
                     </div>
                     <h1 className="font-heading text-3xl sm:text-4xl tracking-[-0.02em]">
-                        Dashboard beta
+                        Tableau de bord
                     </h1>
                 </div>
                 <div className="flex items-center gap-2">
@@ -595,6 +596,7 @@ export default function Admin() {
             <div className="flex items-center justify-between mb-4">
                 <div className="flex rounded-xl border border-black/5 bg-[hsl(var(--card))] p-1 gap-1">
                     {[
+                        { id: 'orders', label: 'Commandes', icon: ShoppingCart },
                         { id: 'keys', label: 'Clés', icon: Key },
                         { id: 'clients', label: 'Clients', icon: Users },
                         { id: 'tickets', label: 'Tickets', icon: Ticket, badge: openTickets },
@@ -632,7 +634,9 @@ export default function Admin() {
                 )}
             </div>
 
-            {loading ? (
+            {tab === 'orders' ? (
+                <OrdersPanel />
+            ) : loading ? (
                 <div className="flex items-center justify-center py-20">
                     <Loader2 className="h-6 w-6 animate-spin text-[hsl(var(--muted-foreground))]" />
                 </div>

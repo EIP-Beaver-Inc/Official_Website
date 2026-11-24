@@ -18,10 +18,10 @@ import logging
 import os
 import smtplib
 import ssl
+from collections.abc import Iterable
 from dataclasses import dataclass
 from email.message import EmailMessage
 from email.utils import formataddr, make_msgid
-from typing import Iterable, Optional
 
 logger = logging.getLogger("beaver.mailer")
 
@@ -38,7 +38,7 @@ class SMTPConfig:
     recipients: tuple[str, ...]
 
     @classmethod
-    def from_env(cls) -> Optional["SMTPConfig"]:
+    def from_env(cls) -> SMTPConfig | None:
         user = os.environ.get("SMTP_USER", "").strip()
         password = os.environ.get("SMTP_PASSWORD", "").strip()
         if not user or not password:
@@ -59,7 +59,7 @@ class SMTPConfig:
         )
 
 
-def _one_line(value: Optional[str]) -> str:
+def _one_line(value: str | None) -> str:
     """Collapse whitespace/newlines so user input can't break email headers."""
     return " ".join((value or "").split())
 
@@ -67,8 +67,8 @@ def _one_line(value: Optional[str]) -> str:
 def _build_message(
     cfg: SMTPConfig,
     subject: str,
-    fields: Iterable[tuple[str, Optional[str]]],
-    reply_to: Optional[str],
+    fields: Iterable[tuple[str, str | None]],
+    reply_to: str | None,
 ) -> EmailMessage:
     fields = list(fields)
 
@@ -110,23 +110,43 @@ def _build_message(
     return msg
 
 
+def _login(smtp: smtplib.SMTP, user: str, password: str) -> None:
+    """Authenticate without an SMTP "initial response".
+
+    smtplib's default login() sends `AUTH PLAIN <credentials>` in a single
+    command; Gmail answers that by silently dropping the connection
+    (SMTPServerDisconnected). Sending `AUTH LOGIN` / `AUTH PLAIN` first and the
+    credentials after the 334 challenge works with Gmail and any other server.
+    """
+    smtp.ehlo_or_helo_if_needed()
+    if not smtp.has_extn("auth"):
+        raise smtplib.SMTPNotSupportedError("SMTP AUTH extension not supported by server.")
+    advertised = smtp.esmtp_features["auth"].upper().split()
+    smtp.user, smtp.password = user, password
+    for mechanism in ("LOGIN", "PLAIN"):
+        if mechanism in advertised:
+            smtp.auth(mechanism, getattr(smtp, "auth_" + mechanism.lower()), initial_response_ok=False)
+            return
+    smtp.login(user, password)  # fall back to smtplib's own choice (e.g. CRAM-MD5)
+
+
 def _send_sync(cfg: SMTPConfig, msg: EmailMessage) -> None:
     context = ssl.create_default_context()
     if cfg.port == 465:
         with smtplib.SMTP_SSL(cfg.host, cfg.port, context=context, timeout=20) as smtp:
-            smtp.login(cfg.user, cfg.password)
+            _login(smtp, cfg.user, cfg.password)
             smtp.send_message(msg)
     else:
         with smtplib.SMTP(cfg.host, cfg.port, timeout=20) as smtp:
             smtp.starttls(context=context)
-            smtp.login(cfg.user, cfg.password)
+            _login(smtp, cfg.user, cfg.password)
             smtp.send_message(msg)
 
 
 async def send_notification(
     subject: str,
-    fields: Iterable[tuple[str, Optional[str]]],
-    reply_to: Optional[str] = None,
+    fields: Iterable[tuple[str, str | None]],
+    reply_to: str | None = None,
 ) -> str:
     """Send a notification email. Never raises.
 
@@ -141,7 +161,7 @@ async def send_notification(
         await asyncio.to_thread(_send_sync, cfg, msg)
         logger.info("Notification email sent to %s: %s", ", ".join(cfg.recipients), msg["Subject"])
         return "sent"
-    except Exception:  # noqa: BLE001 - a mail failure must never break the request
+    except Exception:
         logger.exception("Failed to send notification email: %s", subject)
         return "failed"
 
@@ -187,3 +207,91 @@ async def notify_demo_request(req: dict) -> str:
         ],
         reply_to=req.get("email"),
     )
+
+
+# ---------------------------------------------------------------------------
+# Emails to customers (quote, delivery of the software)
+# ---------------------------------------------------------------------------
+def _customer_message(
+    cfg: SMTPConfig,
+    to: str,
+    subject: str,
+    greeting: str,
+    paragraphs: list[str],
+    code_blocks: Iterable[tuple[str, str]] = (),
+    button: tuple[str, str] | None = None,
+    closing: list[str] | None = None,
+) -> EmailMessage:
+    """A plain, readable email to a customer: paragraphs, labelled blocks of
+    text to copy exactly (a licence key) and at most one button (a link).
+    Replies go to the Beaver inbox, which also receives a copy (Bcc)."""
+    code_blocks = list(code_blocks)
+    closing = closing or []
+
+    text = [greeting, ""]
+    for p in paragraphs:
+        text += [p, ""]
+    if button:
+        text += [f"{button[0]} : {button[1]}", ""]
+    for label, value in code_blocks:
+        text += [f"{label} :", value, ""]
+    for p in closing:
+        text += [p, ""]
+    text += ["L'équipe Beaver", "beaver.eip@gmail.com"]
+
+    def para(p: str) -> str:
+        return f'<p style="margin:0 0 14px;line-height:1.55">{html.escape(p)}</p>'
+
+    blocks_html = "".join(
+        f'<p style="margin:18px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;'
+        f'color:#6b5a4e"><strong>{html.escape(label)}</strong></p>'
+        f'<div style="font-family:Consolas,Menlo,monospace;font-size:13px;background:#f6efe6;'
+        f'border:1px solid #e4d6c6;border-radius:8px;padding:12px;word-break:break-all">'
+        f"{html.escape(value)}</div>"
+        for label, value in code_blocks
+    )
+    button_html = (
+        f'<p style="margin:22px 0"><a href="{html.escape(button[1], quote=True)}" '
+        f'style="background:#a8412a;color:#fff;text-decoration:none;padding:12px 22px;'
+        f'border-radius:999px;font-weight:bold;display:inline-block">{html.escape(button[0])}</a></p>'
+        if button else ""
+    )
+
+    msg = EmailMessage()
+    msg["Subject"] = _one_line(subject)[:200]
+    msg["From"] = formataddr(("Beaver", cfg.sender))
+    msg["To"] = _one_line(to)
+    msg["Reply-To"] = cfg.recipients[0]
+    msg["Bcc"] = ", ".join(cfg.recipients)
+    msg["Message-ID"] = make_msgid(domain=cfg.sender.split("@")[-1])
+    msg.set_content("\n".join(text))
+    msg.add_alternative(
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#2b211b;max-width:600px">'
+        + para(greeting)
+        + "".join(para(p) for p in paragraphs)
+        + button_html
+        + blocks_html
+        + '<div style="margin-top:18px">' + "".join(para(p) for p in closing) + "</div>"
+        + '<p style="margin-top:24px;color:#6b5a4e">L\'équipe Beaver<br>beaver.eip@gmail.com</p></div>',
+        subtype="html",
+    )
+    return msg
+
+
+async def send_customer_email(to: str, subject: str, greeting: str, paragraphs: list[str],
+                              code_blocks: Iterable[tuple[str, str]] = (),
+                              button: tuple[str, str] | None = None,
+                              closing: list[str] | None = None) -> str:
+    """Send an email to a customer. Never raises. Returns "sent", "failed" or "disabled"."""
+    cfg = SMTPConfig.from_env()
+    if cfg is None:
+        logger.warning("SMTP not configured - customer email not sent: %s", subject)
+        return "disabled"
+    try:
+        msg = _customer_message(cfg, to, subject, greeting, paragraphs, code_blocks, button, closing)
+        await asyncio.to_thread(_send_sync, cfg, msg)
+        logger.info("Customer email sent to %s: %s", to, msg["Subject"])
+        return "sent"
+    except Exception:
+        logger.exception("Failed to send customer email: %s", subject)
+        return "failed"

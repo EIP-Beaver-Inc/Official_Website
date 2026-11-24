@@ -91,8 +91,8 @@ class BeaverAPITester:
             "GET", "pipeline", 200,
             validate_fn=lambda d: (
                 (True, "") if (
-                    "steps" in d and len(d["steps"]) == 2 and
-                    "defect_classes" in d and len(d["defect_classes"]) == 7 and
+                    "steps" in d and len(d["steps"]) == 3 and
+                    "defect_classes" in d and len(d["defect_classes"]) == 12 and
                     "scoring_classes" in d and len(d["scoring_classes"]) == 4
                 ) else (False, f"Invalid pipeline structure: steps={len(d.get('steps', []))}, defects={len(d.get('defect_classes', []))}, scoring={len(d.get('scoring_classes', []))}")
             )
@@ -104,8 +104,8 @@ class BeaverAPITester:
             "GET /api/defects",
             "GET", "defects", 200,
             validate_fn=lambda d: (
-                (True, "") if "defects" in d and len(d["defects"]) == 7
-                else (False, f"Expected 7 defects, got {len(d.get('defects', []))}")
+                (True, "") if "defects" in d and len(d["defects"]) == 12
+                else (False, f"Expected 12 defects, got {len(d.get('defects', []))}")
             )
         )
 

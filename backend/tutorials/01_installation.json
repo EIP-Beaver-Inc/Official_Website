@@ -3,24 +3,28 @@
   "order": 1,
   "title": "Installation et premier lancement",
   "category": "Démarrage",
-  "description": "Télécharger, décompresser et lancer Beaver pour la première fois sur votre poste.",
-  "duration": "5 min",
+  "description": "Installer Beaver sur un poste Windows et l'activer avec votre clé de licence.",
+  "duration": "10 min",
   "steps": [
     {
-      "title": "Télécharger le binaire",
-      "content": "Depuis votre espace client, cliquez sur le bouton « Télécharger Beaver ». Une archive .zip (~150 Mo) sera téléchargée dans votre dossier Téléchargements."
+      "title": "Télécharger l'installateur",
+      "content": "Cliquez sur « Télécharger » dans votre espace client, ou sur le bouton du mail de livraison. Le fichier BeaverSetup (environ 200 Mo) est enregistré dans votre dossier Téléchargements. Beaver fonctionne sous Windows 10 et 11 (64 bits). Une carte graphique NVIDIA est fortement recommandée : sans elle, l'analyse tourne sur le processeur, nettement plus lentement."
     },
     {
-      "title": "Décompresser l'archive",
-      "content": "Faites un clic droit sur le fichier .zip et choisissez « Extraire tout ». Choisissez un répertoire accessible (ex. C:\\Beaver). Aucune installation système n'est requise : tout est contenu dans ce dossier."
+      "title": "Lancer l'installation",
+      "content": "Double-cliquez sur BeaverSetup. Aucun droit d'administrateur n'est nécessaire : Beaver s'installe pour votre compte Windows. Si Windows affiche SmartScreen (« Application inconnue »), cliquez sur « Informations complémentaires » puis « Exécuter quand même » : le logiciel n'est pas encore signé commercialement."
     },
     {
-      "title": "Lancer Beaver.exe",
-      "content": "Double-cliquez sur Beaver.exe. Si Windows affiche une fenêtre SmartScreen (« Application inconnue »), cliquez sur « Informations complémentaires » puis « Exécuter quand même ». Cette alerte est normale pour un logiciel non encore signé commercialement."
+      "title": "Choisir les options",
+      "content": "L'assistant propose un raccourci sur le bureau et, si le poste a une carte graphique NVIDIA, « Utiliser la carte graphique NVIDIA ». Laissez cette option cochée : elle télécharge environ 3 Go pendant l'installation et demande une connexion internet. Sans internet, Beaver s'installe quand même et analyse sur le processeur ; relancez l'installateur plus tard pour ajouter l'accélération."
     },
     {
-      "title": "Assistant de première configuration",
-      "content": "Au premier lancement, un assistant vous demande de choisir la langue, le répertoire de stockage des données (logs, base locale) et la résolution d'affichage. Ces paramètres peuvent être modifiés ensuite dans Fichier → Paramètres."
+      "title": "Activer la licence",
+      "content": "À la fin de l'installation, Beaver s'ouvre sur l'écran d'activation. Collez la clé de licence reçue par mail (elle commence par « BVR1. ») et cliquez sur « Activer ». La vérification se fait sans connexion internet. La clé est aussi affichée dans votre espace client, avec un bouton « Copier »."
+    },
+    {
+      "title": "Les lancements suivants",
+      "content": "Double-cliquez sur le raccourci BEAVER du bureau ou du menu Démarrer. L'application démarre elle-même le service d'analyse : il n'y a rien d'autre à lancer. En bas de la barre latérale, « État du système » indique si le service est connecté, si la caméra filme et si l'IA analyse. Pour mettre à jour Beaver, téléchargez la nouvelle version et lancez-la : vos réglages et votre historique sont conservés."
     }
   ]
 }

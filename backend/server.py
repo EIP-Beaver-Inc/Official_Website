@@ -7,6 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import json
 import logging
+import re
 import secrets
 import string
 from pathlib import Path
@@ -18,8 +19,9 @@ from collections import defaultdict, deque
 from datetime import datetime, timezone
 
 from quiz_data import QUIZ, QUIZ_QUESTIONS, build_public_questions, evaluate_answers
-from defects_data import DEFECT_CLASSES, PIPELINE_STEPS, SCORING_CLASSES
+from defects_data import DEFECT_CLASSES, DETECTION_TARGET, PIPELINE_STEPS, SCORING_CLASSES
 from mailer import notify_contact, notify_demo_request
+from orders import build_router as build_orders_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -326,7 +328,7 @@ async def get_pipeline_info():
 
 @api_router.get("/defects")
 async def get_defects():
-    return {"defects": DEFECT_CLASSES}
+    return {"defects": DEFECT_CLASSES, "detection_target": DETECTION_TARGET}
 
 
 @api_router.get("/scoring")
@@ -432,9 +434,23 @@ async def get_tutorials():
 
 
 # ---- Beta access ----
+_INVISIBLE = re.compile("[\u200b\u200c\u200d\u2060\u00ad\ufeff]")
+
+
+def _normalise_key(text: str) -> str:
+    """La clé telle que collée. Une licence (BVR1.…) est gardée telle quelle, sans
+    espaces ni caractères invisibles ni ce qui la précède (son libellé copié avec) ;
+    une ancienne clé d'accès (XXXX-XXXX-XXXX-XXXX) est mise en majuscules."""
+    key = _INVISIBLE.sub("", re.sub(r"\s+", "", text or ""))
+    start = key.find("BVR1.")
+    return key[start:] if start >= 0 else key.upper()
+
+
 @api_router.post("/beta/validate")
 async def validate_beta_key(payload: BetaValidate):
-    normalized = payload.key.strip().upper()
+    normalized = _normalise_key(payload.key)
+    if normalized.startswith("BVR1."):        # une licence ouvre déjà son espace : se connecter
+        return await beta_login(BetaLogin(key=normalized))
     doc = await db.beta_keys.find_one({"key": normalized}, {"_id": 0})
     if not doc:
         raise HTTPException(status_code=404, detail="Clé invalide.")
@@ -469,7 +485,7 @@ async def validate_beta_key(payload: BetaValidate):
 
 @api_router.post("/beta/login")
 async def beta_login(payload: BetaLogin):
-    normalized = payload.key.strip().upper()
+    normalized = _normalise_key(payload.key)
     key_doc = await db.beta_keys.find_one({"key": normalized}, {"_id": 0})
     if not key_doc:
         raise HTTPException(status_code=404, detail="Clé invalide.")
@@ -745,6 +761,9 @@ async def delete_beta_client(client_id: str):
     await db.beta_clients.delete_one({"id": client_id})
     return {"success": True}
 
+
+# ---- Devis, commandes, licences, téléchargements (orders.py) ----
+api_router.include_router(build_orders_router(db, require_admin, _get_client))
 
 # Include router and middleware
 app.include_router(api_router)

@@ -7,7 +7,7 @@ import DemoDialog from '@/components/DemoDialog';
 const NAV = [
     { to: '/', label: 'Accueil' },
     { to: '/quiz', label: 'Quiz · EN 975-1' },
-    { to: '/beta', label: 'Accès beta' },
+    { to: '/beta', label: 'Espace client' },
     { to: '/contact', label: 'Contact' },
 ];
 

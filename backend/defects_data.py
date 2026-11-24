@@ -1,40 +1,108 @@
-"""Static reference data — BEAVER pipeline + EN 975-1 norm."""
+"""Données de référence — chaîne BEAVER + norme EN 975-1.
+
+Alignées sur le logiciel (dépôt Beaver) et sur l'IA (ORGA-IA_BEAVER) : les noms
+sont ceux que l'application affiche à l'opérateur, le statut de détection est
+celui du modèle livré avec le logiciel (BOBER v1.7).
+
+status :
+  live      détecté, montré avec une photo sur la page d'accueil
+  detected  détecté, listé sans photo
+  soon      prévu dans le modèle, pas encore assez d'exemples pour être fiable
+
+detection_rate / previous_rate : part des défauts que le modèle retrouve sur
+des images de test qu'il n'a jamais vues, au seuil optimal, en %, pour
+BOBER v1.7 puis pour le modèle précédent (v1.5). Mesuré par l'équipe IA
+(ORGA-IA_BEAVER, BOBER/comparison_plots/detection_rate_per_class.png).
+"""
+
+# Objectif de l'équipe IA pour le taux de détection, en %.
+DETECTION_TARGET = 70
 from typing import List, Dict
 
 
 DEFECT_CLASSES: List[Dict] = [
-    {"key": "noeud_vif",          "name": "Nœud vif",          "impact": "Mineur",       "description": "Nœud sain, adhérent, issu d'une branche vivante au moment de l'abattage. Bonne intégration mécanique.", "status": "live"},
-    {"key": "noeud_mort",         "name": "Nœud mort",         "impact": "Modéré",      "description": "Nœud noir issu d'une branche déjà morte. Adhérence dégradée, risque de déchaussement.", "status": "live"},
-    {"key": "fissure",            "name": "Fissure",            "impact": "Critique",     "description": "Fente longitudinale ou transversale. Compromet la résistance mécanique de la pièce.", "status": "live"},
-    {"key": "bleuissement",       "name": "Bleuissement",       "impact": "Esthétique",   "description": "Coloration grise/bleutée due à des champignons (Ophiostoma) sur l'aubier humide.", "status": "soon"},
-    {"key": "moelle",             "name": "Moelle",             "impact": "Modéré",      "description": "Cœur de l'arbre. Tissu spongieux instable, fragilise la stabilité dimensionnelle.", "status": "soon"},
-    {"key": "resine",             "name": "Résine",             "impact": "Esthétique",   "description": "Poche ou suintement de résine. Affecte l'aspect et la finition de surface.", "status": "soon"},
-    {"key": "quartzite",          "name": "Quartzite",          "impact": "Critique",     "description": "Inclusion minérale dans le bois. Casse instantanément les outils de coupe.", "status": "soon"},
+    {"key": "noeud_vif",       "name": "Nœud sain",      "impact": "Mineur",
+     "description": "Nœud adhérent, issu d'une branche vivante au moment de l'abattage. Admis dans la plupart des choix selon son diamètre.",
+     "detection_rate": 56, "previous_rate": 27,
+     "status": "live"},
+    {"key": "noeud_mort",      "name": "Nœud mort",      "impact": "Modéré",
+     "description": "Nœud sombre issu d'une branche déjà morte. Adhérence dégradée, risque de déchaussement : limites plus strictes que le nœud sain.",
+     "detection_rate": 65, "previous_rate": 32,
+     "status": "live"},
+    {"key": "fissure",         "name": "Fente",          "impact": "Critique",
+     "description": "Séparation des fibres dans le sens du fil. Mesurée en longueur, elle déclasse vite la pièce.",
+     "detection_rate": 65, "previous_rate": 44,
+     "status": "live"},
+    {"key": "noeud_saute",     "name": "Nœud sauté",     "impact": "Modéré",
+     "description": "Trou laissé par un nœud tombé de la planche.",
+     "detection_rate": 75, "previous_rate": 31,
+     "status": "detected"},
+    {"key": "noeud_fendu",     "name": "Nœud fendu",     "impact": "Modéré",
+     "description": "Nœud traversé par une fente : compté comme un nœud et comme une fente.",
+     "detection_rate": 79, "previous_rate": 39,
+     "status": "detected"},
+    {"key": "noeud_pourri",    "name": "Nœud pourri",    "impact": "Critique",
+     "description": "Nœud attaqué par la pourriture. Distingué du nœud mort : ses limites sont différentes dans presque tous les choix.",
+     "detection_rate": 59, "previous_rate": 0,
+     "status": "detected"},
+    {"key": "patte_de_chat",   "name": "Patte de chat",  "impact": "Mineur",
+     "description": "Groupe de petits nœuds serrés, typique du chêne.",
+     "detection_rate": 46, "previous_rate": 0,
+     "status": "detected"},
+    {"key": "piqure",          "name": "Piqûre",         "impact": "Critique",
+     "description": "Trous de galeries d'insectes. Exclue des meilleurs choix.",
+     "detection_rate": 44, "previous_rate": 0,
+     "status": "detected"},
+    {"key": "pourriture",      "name": "Pourriture",     "impact": "Critique",
+     "description": "Bois dégradé par des champignons. Encore trop peu d'exemples pour une détection fiable.",
+     "detection_rate": 0, "previous_rate": 0,
+     "status": "soon"},
+    {"key": "moelle",          "name": "Moelle",         "impact": "Modéré",
+     "description": "Cœur de l'arbre. Tissu tendre et instable, il fragilise la stabilité de la pièce.",
+     "status": "soon"},
+    {"key": "aubier_altere",   "name": "Aubier altéré",  "impact": "Modéré",
+     "description": "Aubier dégradé ou coloré. Il décide des suffixes X et XX du classement du chêne.",
+     "status": "soon"},
+    {"key": "poche_ecorce",    "name": "Poche d'écorce", "impact": "Modéré",
+     "description": "Écorce incluse dans le bois. Exclusion franche dans de nombreux choix.",
+     "status": "soon"},
 ]
 
 
-# Pipeline montré sur la home : ROI + BOBER (DefectTracker intégré en interne).
+# Chaîne : ROI, BOBER, puis le moteur de classement EN 975-1.
 PIPELINE_STEPS: List[Dict] = [
     {
         "step": "01",
         "name": "ROI",
-        "sub": "MobileNetV3 · CNN custom",
-        "description": "Détecte la planche dans chaque frame et calcule ses 4 coins pour la redresser en perspective avant analyse.",
+        "sub": "YOLO OBB · boîte orientée",
+        "description": "Localise la planche dans chaque image et la redresse en perspective, même quand elle arrive de travers sur le tapis.",
         "icon": "scan",
     },
     {
         "step": "02",
         "name": "BOBER",
-        "sub": "YOLOv8 fine-tuné",
-        "description": "Localise les nœuds et les fissures sur la planche recadrée avec bounding boxes et indice de confiance, puis confirme chaque défaut sur 40 frames minimum.",
+        "sub": "YOLO fine-tuné · v1.7",
+        "description": "Repère les singularités sur la planche redressée. Un défaut n'est retenu que s'il est confirmé sur plusieurs images ; les détections fugaces sont écartées.",
         "icon": "target",
+    },
+    {
+        "step": "03",
+        "name": "EN 975-1",
+        "sub": "Moteur de classement",
+        "description": "Mesure chaque défaut retenu en millimètres sur la planche entière et attribue son choix selon le produit demandé : plots, plateaux, frises ou pièces équarries.",
+        "icon": "ruler",
     },
 ]
 
 
+# Ce que reçoit une planche : le statut de sa note EN 975-1, tel que le logiciel l'affiche.
 SCORING_CLASSES: List[Dict] = [
-    {"name": "Premium",  "range": "≥ 90/100",   "description": "Quasi sans défaut. Ébénisterie, haute menuiserie."},
-    {"name": "Standard", "range": "70 – 89/100", "description": "Défauts mineurs admis. Charpente noble, parquet."},
-    {"name": "Economy",  "range": "50 – 69/100", "description": "Défauts modérés. Coffrage, palettes haut de gamme."},
-    {"name": "Reject",   "range": "< 50/100",   "description": "Défauts critiques. Recyclage, valorisation énergétique."},
+    {"name": "Classée",      "range": "ex. Q-F 1a",
+     "description": "Tous les critères ont été vérifiés : la planche reçoit son choix (A, 1, 2, 3 ou 4 selon le produit)."},
+    {"name": "Sous réserve", "range": "ex. Q-S 2",
+     "description": "Un choix est donné, mais certains critères n'ont pas pu être vérifiés, par exemple une seule face filmée. Les réserves sont listées."},
+    {"name": "Hors choix",   "range": "Q-F hors choix",
+     "description": "La planche n'atteint aucun choix du produit demandé. Le défaut qui la limite est indiqué."},
+    {"name": "Non classée",  "range": "aucune note",
+     "description": "Pas de note possible, par exemple sans échelle (distance caméra–planche non renseignée). Les défauts restent détectés."},
 ]
