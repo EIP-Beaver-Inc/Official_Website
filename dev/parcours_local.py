@@ -1,5 +1,5 @@
 """Le parcours client complet contre le site local lancé par dev\\run_local.ps1 :
-demande de devis -> devis -> commande -> livraison -> mail -> téléchargement
+demande de devis -> devis -> commande (livrée automatiquement) -> mail -> téléchargement
 -> espace client -> licence vérifiée par le code du logiciel BEAVER.
 
   .venv-dev\\Scripts\\python.exe dev\\parcours_local.py
@@ -71,27 +71,26 @@ def main() -> None:
     # 2. L'admin envoie le devis
     debut = time.time() - 1
     r = c.post(f"/api/admin/requests/{rid}/quote", headers=admin,
-               json={"amount_ht": 4500, "details": "Licence 1 an", "validity_days": 15})
+               json={"amount_ht": 4500, "details": "Installation sur site", "validity_days": 15,
+                     "licence_months": 12, "seats": 1})
     r.raise_for_status()
-    assert "4 500,00 € HT" in texte(dernier_mail(debut, client_mail))
-    etape("devis envoyé au client (4 500,00 € HT)")
+    devis = texte(dernier_mail(debut, client_mail))
+    assert "4 500,00 € HT" in devis and "Licence : 1 an, 1 poste." in devis
+    etape("devis envoyé au client (4 500,00 € HT, licence 1 an, 1 poste)")
 
-    # 3. Le client accepte : commande
-    c.post(f"/api/admin/requests/{rid}/status", headers=admin, json={"status": "commande"}).raise_for_status()
-    etape("commande enregistrée")
-
-    # 4. Livraison : licence signée, clé d'accès, lien de téléchargement par mail
+    # 3. Le client accepte : « Commande reçue », et la livraison part toute seule
     debut = time.time() - 1
-    r = c.post(f"/api/admin/requests/{rid}/deliver", headers=admin,
-               json={"licence_expires": "2027-12-31", "seats": 1})
+    r = c.post(f"/api/admin/requests/{rid}/status", headers=admin, json={"status": "commande"})
     r.raise_for_status()
     livre = r.json()
+    assert livre.get("delivered"), livre.get("delivery_error")
     mail = texte(dernier_mail(debut, client_mail))
     assert livre["licence_key"] in mail and livre["access_key"] in mail
     lien = re.search(r"https?://\S+/api/download/[\w-]+", mail).group(0)
-    etape(f"livraison : licence {livre['licence_key'][:12]}..., mail au client avec le lien")
+    etape(f"commande reçue -> livrée automatiquement : licence {livre['licence_key'][:12]}..., "
+          "clé d'accès et lien envoyés au client")
 
-    # 5. Le lien du mail télécharge l'installateur
+    # 4. Le lien du mail télécharge l'installateur
     with c.stream("GET", lien.replace("http://localhost:8001", URL)) as d:
         d.raise_for_status()
         taille = sum(len(b) for b in d.iter_bytes())
@@ -100,7 +99,7 @@ def main() -> None:
     assert taille == attendu, (taille, attendu)
     etape(f"téléchargement : {nom} ({taille // 2**20} Mo), identique au fichier publié")
 
-    # 6. L'espace client avec la clé d'accès du mail
+    # 5. L'espace client avec la clé d'accès du mail
     r = c.post("/api/beta/validate", json={"key": livre["access_key"], "company": "Scierie Test 日本",
                                             "contact_name": "Élodie Łukasz", "email": client_mail})
     r.raise_for_status()
@@ -110,7 +109,7 @@ def main() -> None:
     assert "/api/download/" in c.get("/api/beta/download", headers=auth).json()["url"]
     etape("espace client : licence et téléchargement disponibles")
 
-    # 7. Le logiciel accepte cette licence (son propre code, clé publique de test)
+    # 6. Le logiciel accepte cette licence (son propre code, clé publique de test)
     os.environ["BEAVER_LICENCE_PUBLIC_KEY"] = _env("BEAVER_LICENCE_PUBLIC_KEY") or ""
     if not os.environ["BEAVER_LICENCE_PUBLIC_KEY"]:
         sys.path.insert(0, str(SITE / "backend"))
@@ -120,7 +119,7 @@ def main() -> None:
     sys.path.insert(0, str(BEAVER / "frontend"))
     from services.licence import verify
     l = verify(livre["licence_key"])
-    assert l.customer == "Scierie Test 日本" and l.seats == 1
+    assert l.customer == "Scierie Test 日本" and l.seats == 1 and l.expires is not None
     etape(f"le logiciel BEAVER accepte la licence : {l.customer}, {l.expires_text()}")
 
     print("\nParcours complet OK.")

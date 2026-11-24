@@ -85,6 +85,8 @@ class FakeCollection:
                     _set(d, k, v)
                 for k, v in update.get("$inc", {}).items():
                     _set(d, k, (_get(d, k) or 0) + v)
+                for k in update.get("$unset", {}):
+                    d.pop(k, None)
                 return
 
     async def delete_one(self, query: dict):

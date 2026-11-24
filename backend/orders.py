@@ -9,10 +9,14 @@ et avance ainsi :
 - devis_envoye : l'équipe saisit le montant et le détail ; le client reçoit
   le devis par mail et répond à ce mail pour commander (l'échange de mails se
   fait dans la boîte Beaver, qui reçoit une copie de chaque envoi).
-- commande : l'équipe a reçu l'accord du client.
+- commande : l'équipe a reçu l'accord du client. La livraison part aussitôt,
+  toute seule, avec la durée de licence et le nombre de postes du devis.
 - livre : le site émet la licence signée (licensing.py), crée la clé d'accès
   à l'espace client (le même mécanisme que les clés beta) et un lien de
   téléchargement de l'installateur, puis envoie le tout au client.
+  Si la livraison automatique échoue (pas d'installateur publié, clé de
+  signature absente), le dossier reste « commande » avec la raison, et le
+  bouton « Livrer » la relance.
 
 L'installateur est un fichier BeaverSetup-<version>.exe déposé dans
 RELEASES_DIR ; le plus récent est servi. Un lien de téléchargement est valable
@@ -84,6 +88,31 @@ class QuoteIn(BaseModel):
     amount_ht: float = Field(gt=0, le=1_000_000)
     details: str = Field(min_length=1, max_length=4000)
     validity_days: int = Field(default=30, ge=1, le=365)
+    # Ce que la livraison émettra : durée de la licence en mois (None : sans
+    # limite), à compter de la livraison, et nombre de postes.
+    licence_months: Optional[int] = Field(default=12, ge=1, le=120)
+    seats: int = Field(default=1, ge=1, le=100)
+
+
+DEFAULT_TERMS = {"licence_months": 12, "seats": 1}   # dossier commandé sans devis
+
+
+def add_months(start: date, months: int) -> date:
+    """La même date `months` mois plus tard (le 31 devient le dernier jour du mois)."""
+    total = start.month - 1 + months
+    year, month = start.year + total // 12, total % 12 + 1
+    for day in (start.day, 30, 29, 28):
+        try:
+            return date(year, month, day)
+        except ValueError:
+            continue
+    raise ValueError(start)
+
+
+def licence_terms(months: Optional[int], seats: int) -> str:
+    duration = "sans limite de durée" if not months else (
+        f"{months // 12} an{'s' if months >= 24 else ''}" if months % 12 == 0 else f"{months} mois")
+    return f"{duration}, {seats} poste{'s' if seats > 1 else ''}"
 
 
 class StatusIn(BaseModel):
@@ -151,9 +180,22 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: 
             raise HTTPException(status_code=400, detail="Statut modifiable : nouveau, commande ou annule.")
         if doc["status"] == "livre":
             raise HTTPException(status_code=409, detail="Commande déjà livrée.")
-        await db.demo_requests.update_one({"id": request_id},
-                                          {"$set": {"status": payload.status, "updated_at": _now_iso()}})
-        return {"success": True, "status": payload.status}
+        await db.demo_requests.update_one({"id": request_id}, {
+            "$set": {"status": payload.status, "updated_at": _now_iso()}, "$unset": {"delivery_error": ""}})
+        if payload.status != "commande":
+            return {"success": True, "status": payload.status}
+
+        # Commande confirmée : la livraison part toute seule, aux conditions du devis.
+        terms = {**DEFAULT_TERMS, **{k: v for k, v in (doc.get("quote") or {}).items() if k in DEFAULT_TERMS}}
+        months = terms["licence_months"]
+        expires = add_months(date.today(), months) if months else None
+        try:
+            delivered = await deliver_order({**doc, "status": "commande"}, expires, terms["seats"], None)
+        except HTTPException as exc:
+            logger.warning("Livraison automatique de %s impossible : %s", request_id, exc.detail)
+            await db.demo_requests.update_one({"id": request_id}, {"$set": {"delivery_error": exc.detail}})
+            return {"success": True, "status": "commande", "delivered": False, "delivery_error": exc.detail}
+        return {**delivered, "delivered": True}
 
     @router.post("/admin/requests/{request_id}/quote", dependencies=admin)
     async def send_quote(request_id: str, payload: QuoteIn):
@@ -163,7 +205,8 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: 
         until = date.today() + timedelta(days=payload.validity_days)
         amount = f"{payload.amount_ht:,.2f}".replace(",", " ").replace(".", ",")
         quote = {"amount_ht": payload.amount_ht, "details": payload.details,
-                 "valid_until": until.isoformat(), "sent_at": _now_iso()}
+                 "valid_until": until.isoformat(), "sent_at": _now_iso(),
+                 "licence_months": payload.licence_months, "seats": payload.seats}
         email_status = await send_customer_email(
             doc["email"],
             f"Votre devis Beaver — {doc['entreprise']}",
@@ -172,10 +215,12 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: 
                 "Merci pour votre intérêt pour Beaver. Voici notre proposition pour "
                 f"{doc['entreprise']}.",
                 f"Montant : {amount} € HT.",
+                f"Licence : {licence_terms(payload.licence_months, payload.seats)}.",
                 payload.details,
                 f"Ce devis est valable jusqu'au {until:%d/%m/%Y}.",
-                "Pour commander, ou pour toute question, répondez simplement à ce mail : "
-                "nous revenons vers vous pour finaliser la commande.",
+                "Pour commander, ou pour toute question, répondez simplement à ce mail. Dès "
+                "votre commande confirmée, vous recevez par mail le logiciel, sa licence et "
+                "l'accès à votre espace client.",
             ],
         )
         quote["email_status"] = email_status
@@ -218,19 +263,25 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: 
 
     @router.post("/admin/requests/{request_id}/deliver", dependencies=admin)
     async def deliver(request_id: str, payload: DeliverIn):
+        """Livraison à la main : relance après un échec, ou conditions particulières."""
         doc = await find_request(request_id)
+        return await deliver_order(doc, payload.licence_expires, payload.seats, payload.customer)
+
+    async def deliver_order(doc: dict, licence_expires: Optional[date], seats: int,
+                            customer: Optional[str]) -> dict:
+        request_id = doc["id"]
         if doc["status"] == "livre":
             raise HTTPException(status_code=409, detail="Déjà livrée : utilisez « Renvoyer le mail ».")
         if doc["status"] == "annule":
             raise HTTPException(status_code=409, detail="Ce dossier est annulé.")
         try:
-            licence = licensing.issue(payload.customer or doc["entreprise"], doc["email"],
-                                      payload.licence_expires, payload.seats)
+            licence = licensing.issue(customer or doc["entreprise"], doc["email"], licence_expires, seats)
         except licensing.LicensingNotConfigured as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+        link = await new_download_link({"request_id": request_id})   # 503 sans installateur : rien n'est créé
         access_key = new_access_key()
         await db.beta_keys.insert_one({
             "id": secrets.token_hex(16), "key": access_key, "status": "unused",
@@ -239,14 +290,13 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]], get_client: 
             "request_id": request_id, "licence_id": licence.id, "licence_key": licence.key,
             "licence_expires": licence.expires, "licence_seats": licence.seats,
         })
-        link = await new_download_link({"request_id": request_id})
         record = {"id": licence.id, "key": licence.key, "customer": licence.customer,
                   "email": licence.email, "issued": licence.issued, "expires": licence.expires,
                   "seats": licence.seats, "request_id": request_id, "access_key": access_key,
                   "created_at": _now_iso()}
         await db.licences.insert_one(dict(record))
         email_status = await send_delivery(doc, licence.key, licence.expires, access_key, link)
-        await db.demo_requests.update_one({"id": request_id}, {"$set": {
+        await db.demo_requests.update_one({"id": request_id}, {"$unset": {"delivery_error": ""}, "$set": {
             "status": "livre", "updated_at": _now_iso(),
             "delivery": {"licence_id": licence.id, "licence_expires": licence.expires,
                          "seats": licence.seats, "access_key": access_key,

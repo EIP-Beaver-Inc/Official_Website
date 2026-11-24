@@ -50,8 +50,15 @@ function Modal({ title, children, onClose }) {
     );
 }
 
+// « 1 an, 2 postes », comme dans le mail du devis.
+function licenceTerms(months, seats = 1) {
+    const duration = !months ? 'sans limite de durée'
+        : months % 12 === 0 ? `${months / 12} an${months >= 24 ? 's' : ''}` : `${months} mois`;
+    return `${duration}, ${seats} poste${seats > 1 ? 's' : ''}`;
+}
+
 function QuoteModal({ request, onClose, onDone }) {
-    const [form, setForm] = useState({ amount_ht: '', details: '', validity_days: 30 });
+    const [form, setForm] = useState({ amount_ht: '', details: '', validity_days: 30, licence_months: '12', seats: 1 });
     const [busy, setBusy] = useState(false);
     const set = (f) => (e) => setForm((s) => ({ ...s, [f]: e.target.value }));
 
@@ -63,6 +70,8 @@ function QuoteModal({ request, onClose, onDone }) {
                 amount_ht: Number(String(form.amount_ht).replace(',', '.')),
                 details: form.details,
                 validity_days: Number(form.validity_days) || 30,
+                licence_months: form.licence_months ? Number(form.licence_months) : null,
+                seats: Number(form.seats) || 1,
             });
             toast[r.email_status === 'sent' ? 'success' : 'warning'](
                 r.email_status === 'sent' ? `Devis envoyé à ${request.email}.` : `Devis enregistré, mais le mail n'est pas parti (${r.email_status}).`,
@@ -80,6 +89,7 @@ function QuoteModal({ request, onClose, onDone }) {
             <form onSubmit={submit} className="space-y-4">
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">
                     Envoyé par mail à {request.email}. Le client répond à ce mail pour commander (copie dans la boîte Beaver).
+                    Quand vous cochez « Commande reçue », il reçoit aussitôt le logiciel avec cette licence.
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1.5">
@@ -89,6 +99,22 @@ function QuoteModal({ request, onClose, onDone }) {
                     <div className="flex flex-col gap-1.5">
                         <Label className="label-caps">Validité (jours)</Label>
                         <Input type="number" min="1" max="365" value={form.validity_days} onChange={set('validity_days')} />
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1.5">
+                        <Label className="label-caps">Durée de la licence</Label>
+                        <select value={form.licence_months} onChange={set('licence_months')}
+                            className="h-10 rounded-md border border-black/10 bg-transparent px-3 text-sm">
+                            <option value="12">1 an</option>
+                            <option value="24">2 ans</option>
+                            <option value="36">3 ans</option>
+                            <option value="">Sans limite</option>
+                        </select>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <Label className="label-caps">Postes</Label>
+                        <Input type="number" min="1" max="100" value={form.seats} onChange={set('seats')} />
                     </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -240,6 +266,31 @@ export default function OrdersPanel() {
         }
     };
 
+    // « Commande reçue » : le serveur livre aussitôt (licence du devis, clé d'accès, lien).
+    const confirmOrder = async (r) => {
+        const terms = r.quote ? licenceTerms(r.quote.licence_months, r.quote.seats) : 'licence 1 an, 1 poste';
+        if (!window.confirm(`Commande reçue de ${r.entreprise} ?
+
+${r.email} recevra aussitôt par mail le lien de `
+            + `téléchargement, sa licence (${terms}) et sa clé d'accès à l'espace client.`)) return;
+        setBusyId(r.id);
+        try {
+            const out = await adminSetRequestStatus(r.id, 'commande');
+            if (!out.delivered) {
+                toast.error(`Commande enregistrée, mais la livraison n'a pas pu partir : ${out.delivery_error}`);
+            } else if (out.email_status !== 'sent') {
+                toast.warning(`Commande livrée, mais le mail n'est pas parti (${out.email_status}) : renvoyez-le.`);
+            } else {
+                toast.success(`Commande livrée : logiciel, licence et clé d'accès envoyés à ${r.email}.`);
+            }
+            refresh();
+        } catch (err) {
+            toast.error(errorText(err, 'Action impossible.'));
+        } finally {
+            setBusyId(null);
+        }
+    };
+
     const shown = filter ? rows.filter((r) => r.status === filter) : rows;
 
     return (
@@ -302,7 +353,13 @@ export default function OrdersPanel() {
                                         {r.quote && (
                                             <div className="mt-2 text-xs inline-flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
                                                 <FileText className="h-3.5 w-3.5" />
-                                                Devis {r.quote.amount_ht.toLocaleString('fr-FR')} € HT, envoyé le {fmtDate(r.quote.sent_at)}, valable jusqu'au {fmtDate(r.quote.valid_until)}
+                                                Devis {r.quote.amount_ht.toLocaleString('fr-FR')} € HT ({licenceTerms(r.quote.licence_months, r.quote.seats)}), envoyé le {fmtDate(r.quote.sent_at)}, valable jusqu'au {fmtDate(r.quote.valid_until)}
+                                            </div>
+                                        )}
+                                        {r.delivery_error && r.status === 'commande' && (
+                                            <div className="mt-2 flex gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-2 py-1.5 text-xs text-amber-900">
+                                                <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                                                <span>Livraison automatique impossible : {r.delivery_error} Corrigez puis cliquez « Livrer ».</span>
                                             </div>
                                         )}
                                         {r.delivery && (
@@ -320,12 +377,12 @@ export default function OrdersPanel() {
                                             </button>
                                         )}
                                         {['nouveau', 'devis_envoye'].includes(r.status) && (
-                                            <button className={ghostBtn} disabled={busy}
-                                                onClick={() => act(r.id, () => adminSetRequestStatus(r.id, 'commande'), 'Commande confirmée.')}>
-                                                <CheckCircle2 className="h-3.5 w-3.5" /> Commande reçue
+                                            <button className={primaryBtn} disabled={busy} onClick={() => confirmOrder(r)}>
+                                                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                                                Commande reçue : livrer
                                             </button>
                                         )}
-                                        {['devis_envoye', 'commande'].includes(r.status) && (
+                                        {r.status === 'commande' && (
                                             <button className={primaryBtn} disabled={busy} onClick={() => setDeliverFor(r)}>
                                                 <PackageCheck className="h-3.5 w-3.5" /> Livrer
                                             </button>

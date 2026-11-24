@@ -135,3 +135,70 @@ def test_status_changes(app_client, request_id, mails):
     release(app_client)
     assert app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin,
                            json={}).status_code == 409
+
+
+# ---- Livraison automatique à la confirmation de commande ----
+
+def test_the_quote_states_the_licence_terms(app_client, request_id, mails):
+    app_client.post(f"/api/admin/requests/{request_id}/quote", headers=app_client.admin,
+                    json={"amount_ht": 900, "details": "x", "licence_months": 24, "seats": 3})
+    assert "Licence : 2 ans, 3 postes." in mails[-1]["paragraphs"]
+
+
+def test_confirming_the_order_delivers_it_with_the_quote_terms(app_client, request_id, mails, signing_key):
+    from datetime import date
+    from orders import add_months
+    release(app_client)
+    app_client.post(f"/api/admin/requests/{request_id}/quote", headers=app_client.admin,
+                    json={"amount_ht": 900, "details": "x", "licence_months": 12, "seats": 2})
+    r = app_client.post(f"/api/admin/requests/{request_id}/status", headers=app_client.admin,
+                        json={"status": "commande"})
+    assert r.status_code == 200, r.text
+    out = r.json()
+    assert out["delivered"] is True and out["status"] == "livre"
+
+    mail = mails[-1]
+    assert mail["to"] == "marie@lac.fr" and mail["subject"] == "Votre logiciel Beaver est prêt"
+    blocks = dict(mail["code_blocks"])
+    assert blocks["Clé de licence (à copier en entier)"] == out["licence_key"]
+    assert blocks["Clé d'accès à votre espace client"] == out["access_key"]
+    assert mail["button"][1].startswith("https://site.test/api/download/")
+    expires = add_months(date.today(), 12)
+    assert f"jusqu'au {expires:%d/%m/%Y}" in " ".join(mail["paragraphs"])
+    row = app_client.get("/api/admin/requests", headers=app_client.admin).json()[0]
+    assert row["status"] == "livre" and row["delivery"]["seats"] == 2
+
+
+def test_an_unlimited_licence_from_the_quote(app_client, request_id, mails):
+    release(app_client)
+    app_client.post(f"/api/admin/requests/{request_id}/quote", headers=app_client.admin,
+                    json={"amount_ht": 900, "details": "x", "licence_months": None, "seats": 1})
+    out = app_client.post(f"/api/admin/requests/{request_id}/status", headers=app_client.admin,
+                          json={"status": "commande"}).json()
+    assert out["delivered"] and "sans limite de durée" in " ".join(mails[-1]["paragraphs"])
+
+
+def test_without_an_installer_the_order_waits_and_says_why(app_client, request_id, mails):
+    r = app_client.post(f"/api/admin/requests/{request_id}/status", headers=app_client.admin,
+                        json={"status": "commande"})
+    out = r.json()
+    assert r.status_code == 200 and out["delivered"] is False and "installateur" in out["delivery_error"]
+    assert all(m["subject"] != "Votre logiciel Beaver est prêt" for m in mails)
+    row = app_client.get("/api/admin/requests", headers=app_client.admin).json()[0]
+    assert row["status"] == "commande" and "installateur" in row["delivery_error"]
+    assert app_client.get("/api/admin/licences", headers=app_client.admin).json() == []
+
+    # Once an installer is published, "Livrer" finishes the job and clears the error.
+    release(app_client)
+    r = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={})
+    assert r.status_code == 200, r.text
+    row = app_client.get("/api/admin/requests", headers=app_client.admin).json()[0]
+    assert row["status"] == "livre" and "delivery_error" not in row
+
+
+def test_add_months_keeps_the_day_or_takes_the_last_one():
+    from datetime import date
+    from orders import add_months
+    assert add_months(date(2026, 11, 24), 12) == date(2027, 11, 24)
+    assert add_months(date(2026, 1, 31), 1) == date(2026, 2, 28)
+    assert add_months(date(2027, 12, 15), 1) == date(2028, 1, 15)
