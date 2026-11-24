@@ -97,3 +97,6 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Installateurs servis aux clients (déposés sur le serveur, pas dans git)
+releases/

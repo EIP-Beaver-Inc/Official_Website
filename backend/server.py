@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 from quiz_data import QUIZ, QUIZ_QUESTIONS, build_public_questions, evaluate_answers
 from defects_data import DEFECT_CLASSES, DETECTION_TARGET, PIPELINE_STEPS, SCORING_CLASSES
 from mailer import notify_contact, notify_demo_request
+from orders import build_router as build_orders_router
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -745,6 +746,9 @@ async def delete_beta_client(client_id: str):
     await db.beta_clients.delete_one({"id": client_id})
     return {"success": True}
 
+
+# ---- Devis, commandes, licences, téléchargements (orders.py) ----
+api_router.include_router(build_orders_router(db, require_admin, _get_client, _generate_beta_key))
 
 # Include router and middleware
 app.include_router(api_router)

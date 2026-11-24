@@ -207,3 +207,91 @@ async def notify_demo_request(req: dict) -> str:
         ],
         reply_to=req.get("email"),
     )
+
+
+# ---------------------------------------------------------------------------
+# Emails to customers (quote, delivery of the software)
+# ---------------------------------------------------------------------------
+def _customer_message(
+    cfg: SMTPConfig,
+    to: str,
+    subject: str,
+    greeting: str,
+    paragraphs: list[str],
+    code_blocks: Iterable[tuple[str, str]] = (),
+    button: Optional[tuple[str, str]] = None,
+    closing: Optional[list[str]] = None,
+) -> EmailMessage:
+    """A plain, readable email to a customer: paragraphs, labelled blocks of
+    text to copy exactly (a licence key) and at most one button (a link).
+    Replies go to the Beaver inbox, which also receives a copy (Bcc)."""
+    code_blocks = list(code_blocks)
+    closing = closing or []
+
+    text = [greeting, ""]
+    for p in paragraphs:
+        text += [p, ""]
+    if button:
+        text += [f"{button[0]} : {button[1]}", ""]
+    for label, value in code_blocks:
+        text += [f"{label} :", value, ""]
+    for p in closing:
+        text += [p, ""]
+    text += ["L'équipe Beaver", "beaver.eip@gmail.com"]
+
+    def para(p: str) -> str:
+        return f'<p style="margin:0 0 14px;line-height:1.55">{html.escape(p)}</p>'
+
+    blocks_html = "".join(
+        f'<p style="margin:18px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;'
+        f'color:#6b5a4e"><strong>{html.escape(label)}</strong></p>'
+        f'<div style="font-family:Consolas,Menlo,monospace;font-size:13px;background:#f6efe6;'
+        f'border:1px solid #e4d6c6;border-radius:8px;padding:12px;word-break:break-all">'
+        f"{html.escape(value)}</div>"
+        for label, value in code_blocks
+    )
+    button_html = (
+        f'<p style="margin:22px 0"><a href="{html.escape(button[1], quote=True)}" '
+        f'style="background:#a8412a;color:#fff;text-decoration:none;padding:12px 22px;'
+        f'border-radius:999px;font-weight:bold;display:inline-block">{html.escape(button[0])}</a></p>'
+        if button else ""
+    )
+
+    msg = EmailMessage()
+    msg["Subject"] = _one_line(subject)[:200]
+    msg["From"] = formataddr(("Beaver", cfg.sender))
+    msg["To"] = _one_line(to)
+    msg["Reply-To"] = cfg.recipients[0]
+    msg["Bcc"] = ", ".join(cfg.recipients)
+    msg["Message-ID"] = make_msgid(domain=cfg.sender.split("@")[-1])
+    msg.set_content("\n".join(text))
+    msg.add_alternative(
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#2b211b;max-width:600px">'
+        + para(greeting)
+        + "".join(para(p) for p in paragraphs)
+        + button_html
+        + blocks_html
+        + '<div style="margin-top:18px">' + "".join(para(p) for p in closing) + "</div>"
+        + '<p style="margin-top:24px;color:#6b5a4e">L\'équipe Beaver<br>beaver.eip@gmail.com</p></div>',
+        subtype="html",
+    )
+    return msg
+
+
+async def send_customer_email(to: str, subject: str, greeting: str, paragraphs: list[str],
+                              code_blocks: Iterable[tuple[str, str]] = (),
+                              button: Optional[tuple[str, str]] = None,
+                              closing: Optional[list[str]] = None) -> str:
+    """Send an email to a customer. Never raises. Returns "sent", "failed" or "disabled"."""
+    cfg = SMTPConfig.from_env()
+    if cfg is None:
+        logger.warning("SMTP not configured - customer email not sent: %s", subject)
+        return "disabled"
+    try:
+        msg = _customer_message(cfg, to, subject, greeting, paragraphs, code_blocks, button, closing)
+        await asyncio.to_thread(_send_sync, cfg, msg)
+        logger.info("Customer email sent to %s: %s", to, msg["Subject"])
+        return "sent"
+    except Exception:  # noqa: BLE001 - a mail failure must never break the request
+        logger.exception("Failed to send customer email: %s", subject)
+        return "failed"

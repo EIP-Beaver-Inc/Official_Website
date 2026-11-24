@@ -1,0 +1,137 @@
+"""Du devis à la livraison (orders.py), avec la vraie API et une base en mémoire."""
+import json
+
+import pytest
+
+QUOTE = {"nom": "Marie Martin", "entreprise": "Scierie du Lac", "email": "marie@lac.fr",
+         "telephone": "0600000000", "taille_scierie": "PME", "volume": "200 planches/h", "message": "Bonjour"}
+
+
+@pytest.fixture
+def request_id(app_client):
+    r = app_client.post("/api/demo-requests", json=QUOTE)
+    assert r.status_code == 200, r.text
+    return r.json()["id"]
+
+
+def release(app_client, version="2.1.0", content=b"MZ fake installer"):
+    (app_client.releases / f"BeaverSetup-{version}.exe").write_bytes(content)
+
+
+def test_admin_routes_need_the_admin_token(app_client, request_id):
+    assert app_client.get("/api/admin/requests").status_code == 401
+    assert app_client.get("/api/admin/requests", headers={"X-Admin-Token": "wrong"}).status_code == 401
+
+
+def test_a_new_request_is_listed_as_new(app_client, request_id):
+    rows = app_client.get("/api/admin/requests", headers=app_client.admin).json()
+    assert [(r["id"], r["status"]) for r in rows] == [(request_id, "nouveau")]
+
+
+def test_the_quote_is_emailed_to_the_customer(app_client, request_id, mails):
+    r = app_client.post(f"/api/admin/requests/{request_id}/quote", headers=app_client.admin,
+                        json={"amount_ht": 4500, "details": "Licence 1 an + installation", "validity_days": 15})
+    assert r.status_code == 200, r.text
+    assert r.json()["status"] == "devis_envoye"
+    assert mails[-1]["to"] == "marie@lac.fr"
+    body = " ".join(mails[-1]["paragraphs"])
+    assert "4 500,00 € HT" in body and "Licence 1 an + installation" in body and "répondez" in body
+    row = app_client.get("/api/admin/requests", headers=app_client.admin).json()[0]
+    assert row["quote"]["amount_ht"] == 4500 and row["quote"]["email_status"] == "sent"
+
+
+def test_delivery_sends_licence_access_key_and_download_link(app_client, request_id, mails, signing_key):
+    release(app_client, "2.0.9")
+    release(app_client, "2.1.0")
+    r = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin,
+                        json={"licence_expires": "2027-11-30", "seats": 2})
+    assert r.status_code == 200, r.text
+    out = r.json()
+    assert out["status"] == "livre" and out["download"]["version"] == "2.1.0"
+
+    mail = mails[-1]
+    blocks = dict(mail["code_blocks"])
+    licence_key = blocks["Clé de licence (à copier en entier)"]
+    access_key = blocks["Clé d'accès à votre espace client"]
+    assert licence_key == out["licence_key"] and access_key == out["access_key"]
+    assert mail["button"][1].startswith("https://site.test/api/download/")
+    assert "jusqu'au 30/11/2027" in " ".join(mail["paragraphs"])
+
+    # The licence is the website's signed format, for the company.
+    import base64
+    prefix, payload, signature = licence_key.split(".")
+    signing_key.public_key().verify(base64.urlsafe_b64decode(signature + "=" * (-len(signature) % 4)),
+                                    f"{prefix}.{payload}".encode())
+    data = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+    assert data["customer"] == "Scierie du Lac" and data["seats"] == 2
+
+    # The link in the email downloads the newest installer, and is counted.
+    token = mail["button"][1].rsplit("/", 1)[1]
+    d = app_client.get(f"/api/download/{token}")
+    assert d.status_code == 200 and d.content == b"MZ fake installer"
+    assert "BeaverSetup-2.1.0.exe" in d.headers["content-disposition"]
+    assert app_client.db.downloads.docs[0]["count"] == 1
+
+
+def test_the_customer_space_shows_the_licence_and_downloads(app_client, request_id, mails):
+    release(app_client)
+    out = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin,
+                          json={"licence_expires": None}).json()
+    # The access key from the email opens the customer space (existing beta flow).
+    r = app_client.post("/api/beta/validate", json={"key": out["access_key"], "company": "Scierie du Lac",
+                                                    "contact_name": "Marie Martin", "email": "marie@lac.fr"})
+    assert r.status_code == 200, r.text
+    auth = {"Authorization": f"Bearer {r.json()['session_token']}"}
+    lic = app_client.get("/api/beta/licence", headers=auth).json()["licence"]
+    assert lic["key"] == out["licence_key"] and lic["expires"] is None
+    link = app_client.get("/api/beta/download", headers=auth).json()
+    assert link["version"] == "2.1.0" and link["url"].startswith("https://site.test/api/download/")
+    assert app_client.get("/api/beta/download").status_code == 401
+
+
+def test_no_delivery_without_an_installer(app_client, request_id, mails):
+    r = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={})
+    assert r.status_code == 503 and "installateur" in r.json()["detail"]
+    assert mails == []
+
+
+def test_no_delivery_without_the_signing_key(app_client, request_id, mails, monkeypatch):
+    release(app_client)
+    monkeypatch.delenv("LICENCE_PRIVATE_KEY")
+    r = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={})
+    assert r.status_code == 503 and "LICENCE_PRIVATE_KEY" in r.json()["detail"]
+    assert mails == []
+
+
+def test_a_delivered_order_is_not_delivered_twice_but_can_be_resent(app_client, request_id, mails):
+    release(app_client)
+    first = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={}).json()
+    again = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={})
+    assert again.status_code == 409
+    resent = app_client.post(f"/api/admin/requests/{request_id}/resend", headers=app_client.admin)
+    assert resent.status_code == 200
+    assert dict(mails[-1]["code_blocks"])["Clé de licence (à copier en entier)"] == first["licence_key"]
+    assert len(app_client.get("/api/admin/licences", headers=app_client.admin).json()) == 1
+
+
+def test_an_expired_or_unknown_link(app_client, request_id, mails):
+    release(app_client)
+    app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={})
+    assert app_client.get("/api/download/nope").status_code == 404
+    app_client.db.downloads.docs[0]["expires_at"] = "2000-01-01T00:00:00+00:00"
+    token = app_client.db.downloads.docs[0]["token"]
+    r = app_client.get(f"/api/download/{token}")
+    assert r.status_code == 410 and "espace client" in r.json()["detail"]
+
+
+def test_status_changes(app_client, request_id, mails):
+    ok = app_client.post(f"/api/admin/requests/{request_id}/status", headers=app_client.admin,
+                         json={"status": "commande"})
+    assert ok.status_code == 200
+    bad = app_client.post(f"/api/admin/requests/{request_id}/status", headers=app_client.admin,
+                          json={"status": "livre"})
+    assert bad.status_code == 400
+    app_client.post(f"/api/admin/requests/{request_id}/status", headers=app_client.admin, json={"status": "annule"})
+    release(app_client)
+    assert app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin,
+                           json={}).status_code == 409

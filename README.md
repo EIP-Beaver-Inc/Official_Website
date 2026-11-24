@@ -49,6 +49,39 @@ Sans `SMTP_USER`/`SMTP_PASSWORD`, les formulaires fonctionnent toujours (stockag
 mais aucun email n'est envoyé (un avertissement est loggé). Le statut d'envoi est stocké
 dans le champ `email_status` (`sent` / `failed` / `disabled`) de chaque document.
 
+## Devis, commandes et licences
+
+Le parcours client se pilote depuis l'onglet **Commandes** de la page admin :
+
+1. **Demande de devis** : le formulaire « Demander un devis » du site crée un dossier « Nouveau ».
+2. **Envoyer un devis** : montant HT, détail et validité ; le client le reçoit par mail et
+   répond à ce mail pour commander (copie de chaque envoi dans la boîte Beaver).
+3. **Commande reçue** : à cocher quand le client a donné son accord.
+4. **Livrer** : le site émet la **licence signée** (date de fin ou sans limite, nombre de postes),
+   crée la **clé d'accès à l'espace client** et envoie au client un mail avec le lien de
+   téléchargement de l'installateur, la licence et la clé d'accès. « Renvoyer le mail » refait
+   un envoi avec un lien neuf.
+
+Le client télécharge aussi l'installateur et retrouve sa licence dans son espace client.
+
+Configuration (dans le `.env` à la racine) :
+
+```env
+# Clé privée de signature des licences. SECRÈTE, à sauvegarder hors du serveur :
+# sans elle, impossible d'émettre une licence que le logiciel accepte.
+# Générer : python backend/licensing.py generate (affiche aussi la clé publique à
+# reporter dans Beaver/frontend/services/licence.py).
+LICENCE_PRIVATE_KEY=...
+SITE_URL=https://beaver-website.fr   # pour les liens envoyés par mail
+DOWNLOAD_LINK_DAYS=30                # validité d'un lien de téléchargement
+```
+
+Publier une version du logiciel : copier `BeaverSetup-x.y.z.exe` (construit par
+`Beaver/installer/build-installer.ps1`) dans le dossier `releases/` à côté de
+`docker-compose.yml`. La plus haute version est servie.
+
+Tests du serveur (sans MongoDB ni SMTP) : `cd backend && pytest tests`.
+
 ## Développement local (sans Docker)
 
 ### Backend
