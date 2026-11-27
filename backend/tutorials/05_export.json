@@ -8,7 +8,7 @@
   "steps": [
     {
       "title": "Exporter l'historique en CSV",
-      "content": "Dans Historique, cochez la case de l'en-tête du tableau pour sélectionner toutes les planches, puis cliquez sur « Exporter en CSV ». Le fichier contient la référence, la date, l'essence, le produit, les dimensions, le nombre de défauts et la classe de chaque planche."
+      "content": "Dans Historique, cochez la case de l'en-tête du tableau pour sélectionner toutes les planches, puis cliquez sur « Exporter en CSV ». Le fichier contient la référence, la date, l'essence, le produit, les dimensions, le nombre et les types de défauts, et la classe de chaque planche."
     },
     {
       "title": "Copier la base de l'historique",
