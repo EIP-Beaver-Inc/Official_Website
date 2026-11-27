@@ -18,6 +18,10 @@ def release(app_client, version="2.1.0", content=b"MZ fake installer"):
     (app_client.releases / f"BeaverSetup-{version}.exe").write_bytes(content)
 
 
+def linux_release(app_client, version="2.1.0", content=b"#!/usr/bin/env bash\n"):
+    (app_client.releases / f"BeaverSetup-{version}-linux.run").write_bytes(content)
+
+
 def test_admin_routes_need_the_admin_token(app_client, request_id):
     assert app_client.get("/api/admin/requests").status_code == 401
     assert app_client.get("/api/admin/requests", headers={"X-Admin-Token": "wrong"}).status_code == 401
@@ -235,3 +239,81 @@ def test_an_old_access_key_still_works(app_client):
                                                      "contact_name": "A", "email": "a@a.fr"})
     assert r.status_code == 200, r.text
     assert app_client.post("/api/beta/login", json={"key": " abcd-efgh-ijkl-mnop "}).status_code == 200
+
+
+def test_delivery_sends_a_link_for_windows_and_for_linux(app_client, request_id, mails):
+    release(app_client, "2.1.0")
+    linux_release(app_client, "2.0.9")
+    linux_release(app_client, "2.1.0")
+    out = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={}).json()
+    assert set(out["downloads"]) == {"windows", "linux"}
+    assert out["download"] == out["downloads"]["windows"]
+
+    mail = mails[-1]
+    labels = [label for label, _ in mail["buttons"]]
+    assert labels == ["Télécharger pour Windows (2.1.0)", "Télécharger pour Linux (2.1.0)"]
+    text = " ".join(mail["paragraphs"])
+    assert "bash BeaverSetup-2.1.0-linux.run" in text and "Windows : lancez BeaverSetup" in text
+    assert "4. Au premier lancement" in text
+
+    # Each button downloads its own installer, as what it is.
+    linux_token = mail["buttons"][1][1].rsplit("/", 1)[1]
+    d = app_client.get(f"/api/download/{linux_token}")
+    assert d.status_code == 200 and d.content.startswith(b"#!/usr/bin/env bash")
+    assert "BeaverSetup-2.1.0-linux.run" in d.headers["content-disposition"]
+    assert d.headers["content-type"].startswith("application/x-sh")
+    windows_token = mail["buttons"][0][1].rsplit("/", 1)[1]
+    assert app_client.get(f"/api/download/{windows_token}").content == b"MZ fake installer"
+
+
+def test_a_linux_installer_alone_is_delivered(app_client, request_id, mails):
+    linux_release(app_client)
+    out = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={}).json()
+    assert out["status"] == "livre" and list(out["downloads"]) == ["linux"]
+    mail = mails[-1]
+    assert [label for label, _ in mail["buttons"]] == ["Télécharger pour Linux (2.1.0)"]
+    text = " ".join(mail["paragraphs"])
+    assert "Windows : lancez" not in text and "2. Linux" in text and "3. Au premier lancement" in text
+
+
+def test_a_replaced_linux_installer_is_still_served_by_an_old_link(app_client, request_id, mails):
+    linux_release(app_client, "2.1.0")
+    app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={})
+    token = mails[-1]["buttons"][0][1].rsplit("/", 1)[1]
+    (app_client.releases / "BeaverSetup-2.1.0-linux.run").unlink()
+    release(app_client, "2.2.0")                       # a newer Windows one must not be served instead
+    linux_release(app_client, "2.2.0", b"#!/usr/bin/env bash\n# 2.2.0\n")
+    d = app_client.get(f"/api/download/{token}")
+    assert d.status_code == 200 and "BeaverSetup-2.2.0-linux.run" in d.headers["content-disposition"]
+
+
+def test_the_customer_space_downloads_either_installer(app_client, request_id, mails):
+    release(app_client)
+    linux_release(app_client)
+    out = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={}).json()
+    r = app_client.post("/api/beta/validate", json={"key": out["access_key"], "company": "Scierie du Lac",
+                                                    "contact_name": "Marie Martin", "email": "marie@lac.fr"})
+    auth = {"Authorization": f"Bearer {r.json()['session_token']}"}
+    assert app_client.get("/api/beta/download", headers=auth).json()["platform"] == "windows"
+    linux = app_client.get("/api/beta/download?platform=linux", headers=auth).json()
+    assert linux["platform"] == "linux" and linux["file"] == "BeaverSetup-2.1.0-linux.run"
+    assert app_client.get("/api/beta/download?platform=mac", headers=auth).status_code == 400
+
+
+def test_the_customer_space_says_when_the_linux_installer_is_missing(app_client, request_id, mails):
+    release(app_client)
+    out = app_client.post(f"/api/admin/requests/{request_id}/deliver", headers=app_client.admin, json={}).json()
+    r = app_client.post("/api/beta/validate", json={"key": out["access_key"], "company": "Scierie du Lac",
+                                                    "contact_name": "Marie Martin", "email": "marie@lac.fr"})
+    auth = {"Authorization": f"Bearer {r.json()['session_token']}"}
+    missing = app_client.get("/api/beta/download?platform=linux", headers=auth)
+    assert missing.status_code == 503 and "Linux" in missing.json()["detail"]
+
+
+def test_the_admin_sees_both_installers(app_client):
+    release(app_client, "2.1.0")
+    linux_release(app_client, "2.0.0")
+    info = app_client.get("/api/admin/releases", headers=app_client.admin).json()
+    assert info["installers"]["windows"]["file"] == "BeaverSetup-2.1.0.exe"
+    assert info["installers"]["linux"]["version"] == "2.0.0"
+    assert info["latest"]["version"] == "2.1.0"

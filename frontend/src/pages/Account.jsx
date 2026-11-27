@@ -15,14 +15,14 @@ import BrickPanel from '@/components/BrickPanel';
 
 const FEEDBACK_CATEGORIES = ['Interface', 'Performance', 'Précision IA', 'Documentation', 'Autre'];
 
-// The installer is served by the website (backend/orders.py): each click asks
+// The installers are served by the website (backend/orders.py): each click asks
 // for a fresh download link, valid a few weeks.
-function DownloadButton() {
+function DownloadButton({ platform, label, primary = false }) {
     const [busy, setBusy] = useState(false);
     const download = async () => {
         setBusy(true);
         try {
-            const link = await fetchDownloadLink();
+            const link = await fetchDownloadLink(platform);
             window.location.href = link.url;
         } catch (err) {
             toast.error(err?.response?.data?.detail || 'Téléchargement indisponible pour le moment. Contactez Beaver.');
@@ -34,10 +34,12 @@ function DownloadButton() {
         <button
             onClick={download}
             disabled={busy}
-            className="inline-flex items-center gap-2 rounded-full bg-primary-foreground text-primary hover:bg-white hover:scale-[1.03] disabled:opacity-70 px-6 h-12 text-sm font-medium transition-[background-color,transform]"
+            className={primary
+                ? "inline-flex items-center gap-2 rounded-full bg-primary-foreground text-primary hover:bg-white hover:scale-[1.03] disabled:opacity-70 px-6 h-12 text-sm font-medium transition-[background-color,transform]"
+                : "inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/5 hover:bg-primary-foreground/15 disabled:opacity-70 px-6 h-12 text-sm font-medium transition-colors"}
         >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Télécharger
+            {label}
         </button>
     );
 }
@@ -170,7 +172,7 @@ const FAQ = [
     },
     {
         q: "Comment signaler un bug ?",
-        a: "Ouvrez un ticket ou écrivez à beaver.eip@gmail.com avec une description du problème, une capture d'écran du « Journal du boîtier » (bouton sous la vidéo) et, si l'application s'est fermée, le fichier crash.log du dossier .beaver de votre profil Windows.",
+        a: "Ouvrez un ticket ou écrivez à beaver.eip@gmail.com avec une description du problème, une capture d'écran du « Journal du boîtier » (bouton sous la vidéo) et, si l'application s'est fermée, le fichier crash.log du dossier .beaver de votre dossier personnel (Windows : C:\\Users\\<vous>\\.beaver ; Linux : ~/.beaver).",
     },
 ];
 
@@ -348,11 +350,13 @@ export default function Account() {
                 <div className="flex flex-col sm:flex-row sm:items-end gap-6">
                     <div className="flex-1">
                         <div className="font-mono-ui text-[0.6875rem] uppercase tracking-[0.14em] text-primary-foreground/70">Téléchargement</div>
-                        <div className="mt-4 font-display font-semibold text-4xl sm:text-5xl tracking-[-0.04em]">Beaver pour Windows</div>
-                        <div className="mt-2 text-sm text-primary-foreground/75">Windows 10/11 · x64 · Installation guidée · Carte NVIDIA recommandée</div>
+                        <div className="mt-4 font-display font-semibold text-4xl sm:text-5xl tracking-[-0.04em]">Beaver pour Windows et Linux</div>
+                        <div className="mt-2 text-sm text-primary-foreground/75">Windows 10/11 · Linux (Ubuntu 22.04 ou plus récent) · x64 · Carte NVIDIA recommandée sous Windows</div>
+                        <div className="mt-1 text-xs text-primary-foreground/60">Linux : dans un terminal, <span className="font-mono">bash BeaverSetup-x.y.z-linux.run</span></div>
                     </div>
-                    <div className="flex gap-3">
-                        <DownloadButton />
+                    <div className="flex flex-wrap gap-3">
+                        <DownloadButton platform="windows" label="Windows" primary />
+                        <DownloadButton platform="linux" label="Linux" />
                         <a
                             href="mailto:beaver.eip@gmail.com"
                             className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/5 px-5 h-12 text-sm font-medium hover:bg-primary-foreground/15 transition-colors"

@@ -8,15 +8,15 @@
   "steps": [
     {
       "title": "Exporter l'historique en CSV",
-      "content": "Dans Historique, cochez la case de l'en-tête du tableau pour sélectionner toutes les planches, puis cliquez sur « Exporter en CSV ». Le fichier contient la référence, la date, l'essence, le produit, les dimensions, le nombre de défauts et la classe de chaque planche."
+      "content": "Dans Historique, cochez la case de l'en-tête du tableau pour sélectionner toutes les planches, puis cliquez sur « Exporter en CSV ». Le fichier contient la référence, la date, l'essence, le produit, les dimensions, le nombre et les types de défauts, et la classe de chaque planche."
     },
     {
       "title": "Copier la base de l'historique",
-      "content": "Les rapports complets des planches (chaque défaut, sa position, ses mesures et la raison de la note) sont dans le fichier beaver.db. Fermez Beaver, tapez %LOCALAPPDATA%\\Programs\\BEAVER\\backend\\data dans la barre d'adresse de l'Explorateur Windows, puis copiez ce fichier : c'est la donnée la plus précieuse pour nous. Avec un boîtier sur la ligne, la base est sur le boîtier : demandez-nous la marche à suivre."
+      "content": "Les rapports complets des planches (chaque défaut, sa position, ses mesures et la raison de la note) sont dans le fichier beaver.db. Fermez Beaver, tapez %LOCALAPPDATA%\\Programs\\BEAVER\\backend\\data dans la barre d'adresse de l'Explorateur Windows (sous Linux : ~/.local/share/beaver/backend/data), puis copiez ce fichier : c'est la donnée la plus précieuse pour nous. Avec un boîtier sur la ligne, la base est sur le boîtier : demandez-nous la marche à suivre."
     },
     {
       "title": "Rassembler les journaux",
-      "content": "Le bouton « Journal du boîtier » sous la vidéo affiche les 200 derniers messages du service : faites-en une capture d'écran si un problème est survenu. Les journaux complets sont dans %LOCALAPPDATA%\\Programs\\BEAVER\\logs. Si l'application s'est fermée brutalement, joignez aussi le fichier crash.log du dossier %USERPROFILE%\\.beaver."
+      "content": "Le bouton « Journal du boîtier » sous la vidéo affiche les 200 derniers messages du service : faites-en une capture d'écran si un problème est survenu. Les journaux complets sont dans %LOCALAPPDATA%\\Programs\\BEAVER\\logs (sous Linux : ~/.local/share/beaver/logs). Si l'application s'est fermée brutalement, joignez aussi le fichier crash.log du dossier %USERPROFILE%\\.beaver (sous Linux : ~/.beaver)."
     },
     {
       "title": "Remplir le formulaire de retour",

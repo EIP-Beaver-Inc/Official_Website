@@ -121,9 +121,11 @@ def signing_key(monkeypatch):
 def mails(monkeypatch):
     sent: list[dict] = []
 
-    async def capture(to, subject, greeting, paragraphs, code_blocks=(), button=None, closing=None):
+    async def capture(to, subject, greeting, paragraphs, code_blocks=(), button=None, closing=None, buttons=()):
+        buttons = ([button] if button else []) + list(buttons)
         sent.append({"to": to, "subject": subject, "paragraphs": paragraphs,
-                     "code_blocks": list(code_blocks), "button": button, "closing": closing or []})
+                     "code_blocks": list(code_blocks), "buttons": buttons,
+                     "button": buttons[0] if buttons else None, "closing": closing or []})
         return "sent"
 
     async def notify(_doc):

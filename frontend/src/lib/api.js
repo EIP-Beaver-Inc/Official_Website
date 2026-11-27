@@ -166,8 +166,9 @@ export async function fetchMyLicence() {
     return r.data.licence;
 }
 
-export async function fetchDownloadLink() {
-    const r = await api.get('/beta/download', { headers: betaHeaders() });
+// platform: 'windows' (BeaverSetup-x.y.z.exe) or 'linux' (BeaverSetup-x.y.z-linux.run).
+export async function fetchDownloadLink(platform = 'windows') {
+    const r = await api.get('/beta/download', { headers: betaHeaders(), params: { platform } });
     return r.data;
 }
 
