@@ -31,7 +31,8 @@ services:
       - LICENCE_PRIVATE_KEY=${LICENCE_PRIVATE_KEY:-}
       # Adresse publique du site, pour les liens envoyés par mail.
       - SITE_URL=${SITE_URL:-https://beaver-website.fr}
-      # Installateurs BeaverSetup-x.y.z.exe servis aux clients (le plus récent).
+      # Installateurs servis aux clients, le plus récent de chaque :
+      # BeaverSetup-x.y.z.exe (Windows) et BeaverSetup-x.y.z-linux.run (Linux).
       - RELEASES_DIR=/releases
       - DOWNLOAD_LINK_DAYS=${DOWNLOAD_LINK_DAYS:-30}
     volumes:

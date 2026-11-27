@@ -81,9 +81,14 @@ SITE_URL=https://beaver-website.fr   # pour les liens envoyés par mail
 DOWNLOAD_LINK_DAYS=30                # validité d'un lien de téléchargement
 ```
 
-Publier une version du logiciel : copier `BeaverSetup-x.y.z.exe` (construit par
-`Beaver/installer/build-installer.ps1`) dans le dossier `releases/` à côté de
-`docker-compose.yml`. La plus haute version est servie.
+Publier une version du logiciel : copier dans le dossier `releases/` à côté de
+`docker-compose.yml` les deux installateurs, `BeaverSetup-x.y.z.exe` (Windows,
+construit par `Beaver/installer/build-installer.ps1`) et
+`BeaverSetup-x.y.z-linux.run` (Linux, `Beaver/installer/build-installer.sh` ou
+le workflow « Release Linux » du dépôt Beaver). La plus haute version de chacun
+est servie ; la livraison envoie un lien par installateur présent. Rien n'est
+dans git : les fichiers déjà en place restent servis jusqu'au dépôt des suivants,
+et un ancien lien de téléchargement sert la version la plus récente.
 
 Tests du serveur (sans MongoDB ni SMTP) : `cd backend && pytest tests`.
 

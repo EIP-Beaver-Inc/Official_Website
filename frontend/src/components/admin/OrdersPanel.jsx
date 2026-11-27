@@ -43,6 +43,12 @@ const parseAmount = (text) => {
     return cleaned && /^\d+(\.\d+)?$/.test(cleaned) ? Number(cleaned) : NaN;
 };
 const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR') : '-');
+const PLATFORMS = { windows: 'Windows', linux: 'Linux' };
+// "Windows 2.1.0 · Linux 2.1.0": the installers the delivery will link to.
+const installerNames = (release) => Object.entries(release?.installers || {})
+    .filter(([, info]) => info)
+    .map(([platform, info]) => `${PLATFORMS[platform] || platform} ${info.version}`)
+    .join(' · ');
 const oneYearFromNow = () => {
     const d = new Date();
     d.setFullYear(d.getFullYear() + 1);
@@ -158,6 +164,7 @@ function DeliverModal({ request, release, onClose, onDone }) {
     const [result, setResult] = useState(null);
     const set = (f) => (e) => setForm((s) => ({ ...s, [f]: e.target.value }));
     const blocked = !release?.licensing_configured || !release?.latest;
+    const installers = installerNames(release);
 
     const submit = async (e) => {
         e.preventDefault();
@@ -190,10 +197,12 @@ function DeliverModal({ request, release, onClose, onDone }) {
                         <div className="label-caps mb-1">Licence {result.licence_id}</div>
                         <div className="font-mono break-all rounded-lg border border-black/10 bg-[hsl(var(--card))] p-2">{result.licence_key}</div>
                     </div>
-                    <div>
-                        <div className="label-caps mb-1">Téléchargement (Beaver {result.download.version})</div>
-                        <div className="font-mono break-all rounded-lg border border-black/10 bg-[hsl(var(--card))] p-2">{result.download.url}</div>
-                    </div>
+                    {Object.entries(result.downloads || { windows: result.download }).map(([platform, link]) => (
+                        <div key={platform}>
+                            <div className="label-caps mb-1">Téléchargement {PLATFORMS[platform]} (Beaver {link.version})</div>
+                            <div className="font-mono break-all rounded-lg border border-black/10 bg-[hsl(var(--card))] p-2">{link.url}</div>
+                        </div>
+                    ))}
                 </div>
             </Modal>
         );
@@ -207,14 +216,14 @@ function DeliverModal({ request, release, onClose, onDone }) {
                     <span>
                         {!release?.licensing_configured
                             ? "La clé de signature des licences (LICENCE_PRIVATE_KEY) n'est pas configurée sur le serveur."
-                            : `Aucun installateur BeaverSetup-x.y.z.exe dans ${release.releases_dir}.`}
+                            : `Aucun installateur (BeaverSetup-x.y.z.exe ou BeaverSetup-x.y.z-linux.run) dans ${release.releases_dir}.`}
                     </span>
                 </div>
             )}
             <form onSubmit={submit} className="space-y-4">
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                    Émet la licence, crée l'accès à l'espace client et envoie à {request.email} le lien de téléchargement
-                    {release?.latest ? ` (Beaver ${release.latest.version})` : ''}.
+                    Émet la licence, crée l'accès à l'espace client et envoie à {request.email} un lien de téléchargement
+                    par installateur publié{installers ? ` (${installers})` : ''}.
                 </p>
                 <div className="flex flex-col gap-1.5">
                     <Label className="label-caps">Titulaire (affiché dans le logiciel)</Label>
@@ -329,7 +338,7 @@ ${r.email} recevra aussitôt par mail le lien de `
                             {release.latest && release.licensing_configured
                                 ? <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
                                 : <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />}
-                            {release.latest ? `Installateur ${release.latest.version}` : 'Aucun installateur'}
+                            {release.latest ? `Installateurs : ${installerNames(release)}` : 'Aucun installateur'}
                             {release.licensing_configured ? '' : ' · signature non configurée'}
                         </span>
                     )}

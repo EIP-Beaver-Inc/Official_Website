@@ -19,10 +19,11 @@ et avance ainsi :
   signature absente), le dossier reste « commande » avec la raison, et le
   bouton « Livrer » la relance.
 
-L'installateur est un fichier BeaverSetup-<version>.exe déposé dans
-RELEASES_DIR ; le plus récent est servi. Un lien de téléchargement est valable
-DOWNLOAD_LINK_DAYS jours (30 par défaut) ; l'espace client en recrée un à la
-demande.
+Les installateurs sont déposés dans RELEASES_DIR : BeaverSetup-<version>.exe
+pour Windows, BeaverSetup-<version>-linux.run pour Linux. Le plus récent de
+chaque est servi ; la livraison envoie un lien pour chaque système disponible.
+Un lien de téléchargement est valable DOWNLOAD_LINK_DAYS jours (30 par défaut) ;
+l'espace client en recrée un à la demande.
 """
 from __future__ import annotations
 
@@ -45,7 +46,14 @@ from mailer import send_customer_email
 logger = logging.getLogger("beaver.orders")
 
 STATUSES = ["nouveau", "devis_envoye", "commande", "livre", "annule"]
-RELEASE_PATTERN = re.compile(r"^BeaverSetup-(\d+)\.(\d+)\.(\d+)\.exe$")
+# Les installateurs servis, par système : le nom que leur donnent
+# Beaver/installer/build-installer.ps1 et build-installer.sh.
+INSTALLERS = {
+    "windows": re.compile(r"^BeaverSetup-(\d+)\.(\d+)\.(\d+)\.exe$"),
+    "linux": re.compile(r"^BeaverSetup-(\d+)\.(\d+)\.(\d+)-linux\.run$"),
+}
+PLATFORM_NAMES = {"windows": "Windows", "linux": "Linux"}
+MEDIA_TYPES = {"windows": "application/vnd.microsoft.portable-executable", "linux": "application/x-sh"}
 
 
 def _now_iso() -> str:
@@ -67,22 +75,31 @@ def link_days() -> int:
         return 30
 
 
-def latest_release() -> Path | None:
-    """Le BeaverSetup-x.y.z.exe de plus haute version, ou None."""
+def latest_release(platform: str = "windows") -> Path | None:
+    """L'installateur de plus haute version pour ce système, ou None."""
     folder = releases_dir()
     if not folder.is_dir():
         return None
     found = []
     for f in folder.iterdir():
-        m = RELEASE_PATTERN.match(f.name)
+        m = INSTALLERS[platform].match(f.name)
         if m and f.is_file():
             found.append((tuple(int(x) for x in m.groups()), f))
     return max(found)[1] if found else None
 
 
+def platform_of(name: str) -> str | None:
+    return next((p for p, pattern in INSTALLERS.items() if pattern.match(name)), None)
+
+
 def release_version(path: Path) -> str:
-    m = RELEASE_PATTERN.match(path.name)
-    return ".".join(m.groups()) if m else ""
+    platform = platform_of(path.name)
+    return ".".join(INSTALLERS[platform].match(path.name).groups()) if platform else ""
+
+
+def release_info(path: Path | None) -> dict | None:
+    return None if path is None else {
+        "file": path.name, "version": release_version(path), "size": path.stat().st_size}
 
 
 # ====================== Modèles ======================
@@ -153,20 +170,30 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
         doc.setdefault("status", "nouveau")
         return doc
 
-    async def new_download_link(owner: dict) -> dict:
+    async def new_download_link(owner: dict, platform: str = "windows") -> dict:
         """Un lien de téléchargement neuf pour `owner` ({request_id} ou {client_key})."""
-        release = latest_release()
+        release = latest_release(platform)
         if release is None:
-            raise HTTPException(status_code=503,
-                                detail="Aucun installateur n'est disponible pour le moment. Contactez Beaver.")
+            raise HTTPException(status_code=503, detail=(
+                f"Aucun installateur {PLATFORM_NAMES[platform]} n'est disponible pour le moment. "
+                "Contactez Beaver."))
         token = secrets.token_urlsafe(32)
         expires = datetime.now(UTC) + timedelta(days=link_days())
         await db.downloads.insert_one({
-            "token": token, **owner, "file": release.name, "created_at": _now_iso(),
+            "token": token, **owner, "file": release.name, "platform": platform, "created_at": _now_iso(),
             "expires_at": expires.isoformat(), "count": 0,
         })
         return {"url": f"{site_url()}/api/download/{token}", "version": release_version(release),
+                "platform": platform, "file": release.name,
                 "size": release.stat().st_size, "expires_at": expires.isoformat()}
+
+    async def new_download_links(owner: dict) -> dict[str, dict]:
+        """Un lien par système dont l'installateur est publié (Windows d'abord)."""
+        available = [p for p in INSTALLERS if latest_release(p) is not None]
+        if not available:
+            raise HTTPException(status_code=503,
+                                detail="Aucun installateur n'est disponible pour le moment. Contactez Beaver.")
+        return {p: await new_download_link(owner, p) for p in available}
 
     # ---- Administration ----
     @router.get("/admin/requests", dependencies=admin)
@@ -178,13 +205,14 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
         return docs
 
     @router.get("/admin/releases", dependencies=admin)
-    async def release_info():
-        release = latest_release()
+    async def releases():
+        installers = {p: release_info(latest_release(p)) for p in INSTALLERS}
         return {
             "licensing_configured": licensing.is_configured(),
             "releases_dir": str(releases_dir()),
-            "latest": None if release is None else {
-                "file": release.name, "version": release_version(release), "size": release.stat().st_size},
+            # Le plus récent de tous : ce que la livraison annonce.
+            "latest": installers["windows"] or installers["linux"],
+            "installers": installers,
         }
 
     @router.post("/admin/requests/{request_id}/status", dependencies=admin)
@@ -242,12 +270,23 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
             "status": "devis_envoye", "quote": quote, "updated_at": _now_iso()}})
         return {"success": True, "status": "devis_envoye", "email_status": email_status}
 
-    async def send_delivery(doc: dict, licence_key: str, licence_expires: str | None, link: dict,
+    async def send_delivery(doc: dict, licence_key: str, licence_expires: str | None, links: dict[str, dict],
                             access_key: str | None = None) -> str:
         """`access_key` : seulement pour une commande livrée avant la clé unique,
         dont l'espace client s'ouvre encore avec son ancienne clé d'accès."""
         validity = ("sans limite de durée" if not licence_expires
                     else f"valable jusqu'au {date.fromisoformat(licence_expires):%d/%m/%Y}")
+        available = " ou ".join(PLATFORM_NAMES[p] for p in links)
+        steps = []
+        if "windows" in links:
+            steps.append("2. Windows : lancez BeaverSetup et suivez les étapes. Aucun droit d'administrateur "
+                         "n'est nécessaire. Si le poste a une carte graphique NVIDIA, laissez cochée l'option "
+                         "d'accélération (connexion internet nécessaire pendant l'installation).")
+        if "linux" in links:
+            steps.append(f"{'3' if 'windows' in links else '2'}. Linux (Ubuntu 22.04 ou plus récent, 64 bits) : "
+                         f"ouvrez un terminal dans le dossier du téléchargement et tapez « bash "
+                         f"{links['linux']['file']} ». Beaver s'installe pour votre compte, sans mot de passe "
+                         "administrateur, avec son icône dans le menu des applications.")
         return await send_customer_email(
             doc["email"],
             "Votre logiciel Beaver est prêt",
@@ -255,19 +294,19 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
             [
                 (f"Votre commande est confirmée : voici de quoi installer et activer Beaver chez "
                 f"{doc['entreprise']}."),
-                ("1. Téléchargez l'installateur avec le bouton ci-dessous (lien valable "
-                f"{link_days()} jours ; vous pourrez en obtenir un nouveau depuis votre espace client)."),
-                ("2. Lancez BeaverSetup sur le poste de la ligne et suivez les étapes. Aucun droit "
-                "d'administrateur n'est nécessaire. Si le poste a une carte graphique NVIDIA, laissez "
-                "cochée l'option d'accélération (connexion internet nécessaire pendant l'installation)."),
-                ("3. Au premier lancement, collez votre clé de licence ci-dessous (le texte qui commence "
-                "par BVR1.) dans l'écran d'activation. Elle se vérifie sans connexion internet."),
+                (f"1. Téléchargez l'installateur du système du poste de la ligne ({available}) avec "
+                f"le bouton ci-dessous (lien valable {link_days()} jours ; vous pourrez en obtenir un "
+                "nouveau depuis votre espace client)."),
+                *steps,
+                (f"{len(steps) + 2}. Au premier lancement, collez votre clé de licence ci-dessous (le texte "
+                "qui commence par BVR1.) dans l'écran d'activation. Elle se vérifie sans connexion internet."),
                 f"Votre licence est {validity}.",
             ],
             code_blocks=[("Votre clé de licence (à copier en entier)", licence_key)]
             + ([("Clé d'accès à votre espace client", access_key)]
                if access_key and access_key != licence_key else []),
-            button=(f"Télécharger Beaver {link['version']}", link["url"]),
+            buttons=[(f"Télécharger pour {PLATFORM_NAMES[p]} ({link['version']})", link["url"])
+                     for p, link in links.items()],
             closing=[
                 (f"La même clé vous connecte à votre espace client ({site_url()}/beta) : guides, "
                 "téléchargement de l'installateur et suivi de vos demandes."),
@@ -295,7 +334,8 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-        link = await new_download_link({"request_id": request_id})   # 503 sans installateur : rien n'est créé
+        links = await new_download_links({"request_id": request_id})   # 503 sans installateur : rien n'est créé
+        link = next(iter(links.values()))
         # L'espace client, ouvert d'office avec ce que la commande dit du client :
         # la licence est sa clé de connexion, sans « première connexion » à faire.
         access_key = licence.key
@@ -316,15 +356,15 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
                   "seats": licence.seats, "request_id": request_id, "access_key": access_key,
                   "created_at": _now_iso()}
         await db.licences.insert_one(dict(record))
-        email_status = await send_delivery(doc, licence.key, licence.expires, link)
+        email_status = await send_delivery(doc, licence.key, licence.expires, links)
         await db.demo_requests.update_one({"id": request_id}, {"$unset": {"delivery_error": ""}, "$set": {
             "status": "livre", "updated_at": _now_iso(),
             "delivery": {"licence_id": licence.id, "licence_expires": licence.expires,
                          "seats": licence.seats, "access_key": access_key,
                          "delivered_at": _now_iso(), "email_status": email_status,
-                         "version": link["version"]}}})
+                         "version": link["version"], "platforms": list(links)}}})
         return {"success": True, "status": "livre", "licence_id": licence.id, "licence_key": licence.key,
-                "access_key": access_key, "download": link, "email_status": email_status}
+                "access_key": access_key, "download": link, "downloads": links, "email_status": email_status}
 
     @router.post("/admin/requests/{request_id}/resend", dependencies=admin)
     async def resend(request_id: str):
@@ -334,11 +374,12 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
         lic = await db.licences.find_one({"request_id": request_id}, {"_id": 0}, sort=[("created_at", -1)])
         if not lic:
             raise HTTPException(status_code=404, detail="Licence introuvable pour ce dossier.")
-        link = await new_download_link({"request_id": request_id})
-        email_status = await send_delivery(doc, lic["key"], lic.get("expires"), link, lic.get("access_key"))
+        links = await new_download_links({"request_id": request_id})
+        email_status = await send_delivery(doc, lic["key"], lic.get("expires"), links, lic.get("access_key"))
         await db.demo_requests.update_one({"id": request_id}, {"$set": {
             "delivery.email_status": email_status, "delivery.resent_at": _now_iso(), "updated_at": _now_iso()}})
-        return {"success": True, "email_status": email_status, "download": link}
+        return {"success": True, "email_status": email_status, "download": next(iter(links.values())),
+                "downloads": links}
 
     @router.get("/admin/licences", dependencies=admin)
     async def list_licences(limit: int = 300):
@@ -347,8 +388,10 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
 
     # ---- Espace client ----
     @router.get("/beta/download")
-    async def client_download(c: dict = Depends(get_client)):  # noqa: B008 - usage FastAPI ; Annotated ne voit pas get_client (local) avec les annotations différées
-        return await new_download_link({"client_key": c["key"]})
+    async def client_download(platform: str = "windows", c: dict = Depends(get_client)):  # noqa: B008 - usage FastAPI ; Annotated ne voit pas get_client (local) avec les annotations différées
+        if platform not in INSTALLERS:
+            raise HTTPException(status_code=400, detail="Système attendu : windows ou linux.")
+        return await new_download_link({"client_key": c["key"]}, platform)
 
     @router.get("/beta/licence")
     async def client_licence(c: dict = Depends(get_client)):  # noqa: B008 - usage FastAPI ; Annotated ne voit pas get_client (local) avec les annotations différées
@@ -368,14 +411,14 @@ def build_router(db, require_admin: Callable[..., Awaitable[None]],
         if datetime.now(UTC) > expires:
             raise HTTPException(status_code=410,
                                 detail="Ce lien a expiré : téléchargez Beaver depuis votre espace client.")
+        platform = link.get("platform") or platform_of(link["file"]) or "windows"
         path = releases_dir() / link["file"]
         if not path.is_file():
-            path = latest_release()          # the file was replaced by a newer version
+            path = latest_release(platform)  # the file was replaced by a newer version
         if path is None or not path.is_file():
             raise HTTPException(status_code=503, detail="Installateur indisponible, contactez Beaver.")
         await db.downloads.update_one({"token": token},
                                       {"$inc": {"count": 1}, "$set": {"last_at": _now_iso()}})
-        return FileResponse(path, media_type="application/vnd.microsoft.portable-executable",
-                            filename=path.name)
+        return FileResponse(path, media_type=MEDIA_TYPES[platform], filename=path.name)
 
     return router

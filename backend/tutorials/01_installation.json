@@ -3,19 +3,23 @@
   "order": 1,
   "title": "Installation et premier lancement",
   "category": "Démarrage",
-  "description": "Installer Beaver sur un poste Windows et l'activer avec votre clé de licence.",
+  "description": "Installer Beaver sur un poste Windows ou Linux et l'activer avec votre clé de licence.",
   "duration": "10 min",
   "steps": [
     {
       "title": "Télécharger l'installateur",
-      "content": "Cliquez sur « Télécharger » dans votre espace client, ou sur le bouton du mail de livraison. Le fichier BeaverSetup (environ 200 Mo) est enregistré dans votre dossier Téléchargements. Beaver fonctionne sous Windows 10 et 11 (64 bits). Une carte graphique NVIDIA est fortement recommandée : sans elle, l'analyse tourne sur le processeur, nettement plus lentement."
+      "content": "Cliquez sur « Windows » ou « Linux » dans votre espace client, ou sur le bouton du mail de livraison correspondant au système du poste de la ligne. Le fichier BeaverSetup (environ 200 Mo sous Windows, 300 Mo sous Linux) est enregistré dans votre dossier Téléchargements. Beaver fonctionne sous Windows 10 et 11 (64 bits) et sous Linux 64 bits (Ubuntu 22.04, Debian 12 ou plus récents). Une carte graphique NVIDIA est fortement recommandée sous Windows : sans elle, l'analyse tourne sur le processeur, nettement plus lentement. Sous Linux, l'analyse tourne sur le processeur."
     },
     {
-      "title": "Lancer l'installation",
+      "title": "Lancer l'installation (Windows)",
       "content": "Double-cliquez sur BeaverSetup. Aucun droit d'administrateur n'est nécessaire : Beaver s'installe pour votre compte Windows. Si Windows affiche SmartScreen (« Application inconnue »), cliquez sur « Informations complémentaires » puis « Exécuter quand même » : le logiciel n'est pas encore signé commercialement."
     },
     {
-      "title": "Choisir les options",
+      "title": "Lancer l'installation (Linux)",
+      "content": "Ouvrez un terminal dans votre dossier Téléchargements (clic droit dans le dossier, « Ouvrir dans un terminal ») et tapez : bash BeaverSetup-x.y.z-linux.run (avec le numéro de version du fichier). Aucun mot de passe administrateur n'est demandé : Beaver s'installe pour votre compte dans ~/.local/share/beaver, avec son icône dans le menu des applications et sur le bureau. Si l'installateur signale une bibliothèque d'affichage absente, installez-la avec la commande qu'il indique (par exemple sudo apt install libxcb-cursor0). Pour désinstaller : ~/.local/share/beaver/uninstall.sh (l'historique et les réglages sont conservés)."
+    },
+    {
+      "title": "Choisir les options (Windows)",
       "content": "L'assistant propose un raccourci sur le bureau et, si le poste a une carte graphique NVIDIA, « Utiliser la carte graphique NVIDIA ». Laissez cette option cochée : elle télécharge environ 3 Go pendant l'installation et demande une connexion internet. Sans internet, Beaver s'installe quand même et analyse sur le processeur ; relancez l'installateur plus tard pour ajouter l'accélération."
     },
     {
@@ -24,7 +28,7 @@
     },
     {
       "title": "Les lancements suivants",
-      "content": "Double-cliquez sur le raccourci BEAVER du bureau ou du menu Démarrer. L'application démarre elle-même le service d'analyse : il n'y a rien d'autre à lancer. En bas de la barre latérale, « État du système » indique si le service est connecté, si la caméra filme et si l'IA analyse. Pour mettre à jour Beaver, téléchargez la nouvelle version et lancez-la : vos réglages et votre historique sont conservés."
+      "content": "Double-cliquez sur le raccourci BEAVER du bureau, du menu Démarrer (Windows) ou du menu des applications (Linux). L'application démarre elle-même le service d'analyse : il n'y a rien d'autre à lancer. En bas de la barre latérale, « État du système » indique si le service est connecté, si la caméra filme et si l'IA analyse. Pour mettre à jour Beaver, téléchargez la nouvelle version et lancez-la : vos réglages et votre historique sont conservés."
     }
   ]
 }

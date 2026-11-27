@@ -221,18 +221,20 @@ def _customer_message(
     code_blocks: Iterable[tuple[str, str]] = (),
     button: tuple[str, str] | None = None,
     closing: list[str] | None = None,
+    buttons: Iterable[tuple[str, str]] = (),
 ) -> EmailMessage:
     """A plain, readable email to a customer: paragraphs, labelled blocks of
-    text to copy exactly (a licence key) and at most one button (a link).
+    text to copy exactly (a licence key) and buttons (links: one per installer).
     Replies go to the Beaver inbox, which also receives a copy (Bcc)."""
     code_blocks = list(code_blocks)
     closing = closing or []
+    buttons = ([button] if button else []) + list(buttons)
 
     text = [greeting, ""]
     for p in paragraphs:
         text += [p, ""]
-    if button:
-        text += [f"{button[0]} : {button[1]}", ""]
+    for label, url in buttons:
+        text += [f"{label} : {url}", ""]
     for label, value in code_blocks:
         text += [f"{label} :", value, ""]
     for p in closing:
@@ -251,10 +253,12 @@ def _customer_message(
         for label, value in code_blocks
     )
     button_html = (
-        f'<p style="margin:22px 0"><a href="{html.escape(button[1], quote=True)}" '
-        f'style="background:#a8412a;color:#fff;text-decoration:none;padding:12px 22px;'
-        f'border-radius:999px;font-weight:bold;display:inline-block">{html.escape(button[0])}</a></p>'
-        if button else ""
+        '<p style="margin:22px 0">' + "".join(
+            f'<a href="{html.escape(url, quote=True)}" '
+            f'style="background:#a8412a;color:#fff;text-decoration:none;padding:12px 22px;margin:0 8px 8px 0;'
+            f'border-radius:999px;font-weight:bold;display:inline-block">{html.escape(label)}</a>'
+            for label, url in buttons) + "</p>"
+        if buttons else ""
     )
 
     msg = EmailMessage()
@@ -281,14 +285,15 @@ def _customer_message(
 async def send_customer_email(to: str, subject: str, greeting: str, paragraphs: list[str],
                               code_blocks: Iterable[tuple[str, str]] = (),
                               button: tuple[str, str] | None = None,
-                              closing: list[str] | None = None) -> str:
+                              closing: list[str] | None = None,
+                              buttons: Iterable[tuple[str, str]] = ()) -> str:
     """Send an email to a customer. Never raises. Returns "sent", "failed" or "disabled"."""
     cfg = SMTPConfig.from_env()
     if cfg is None:
         logger.warning("SMTP not configured - customer email not sent: %s", subject)
         return "disabled"
     try:
-        msg = _customer_message(cfg, to, subject, greeting, paragraphs, code_blocks, button, closing)
+        msg = _customer_message(cfg, to, subject, greeting, paragraphs, code_blocks, button, closing, buttons)
         await asyncio.to_thread(_send_sync, cfg, msg)
         logger.info("Customer email sent to %s: %s", to, msg["Subject"])
         return "sent"
